@@ -1,4 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../ecommerce/screens/shop_home_screen.dart';
 import '../theme/app_colors.dart';
 import 'search_screen.dart';
 import 'notification_screen.dart';
@@ -40,15 +43,73 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  // Developer-only content explaining footer architecture (used in UI below).
+  final List<Promo> developerFooterPromos = const [
+    Promo(
+      title: 'Footer Architecture Overview',
+      subtitle:
+          'The footer is built using layered widgets instead of BottomNavigationBar',
+    ),
+    Promo(
+      title: 'Why Custom Footer',
+      subtitle: 'Default BottomNavigationBar cannot create curved notch/center cut',
+    ),
+    Promo(
+      title: 'Stack-Based Layout',
+      subtitle: 'Stack layers footer bar, notch, and scan button',
+    ),
+    Promo(
+      title: 'Base Footer Container',
+      subtitle: 'A fixed-height container holds navigation icons and labels',
+    ),
+    Promo(
+      title: 'Curved Notch Creation',
+      subtitle: 'A curved path can be drawn using CustomPainter for a center cut',
+    ),
+    Promo(
+      title: 'Floating Scan Button',
+      subtitle: 'Scan button is positioned using Positioned inside Stack',
+    ),
+    Promo(
+      title: 'Depth Illusion',
+      subtitle: 'Shadows and circular layers create depth behind the scan button',
+    ),
+    Promo(
+      title: 'Active Tab State',
+      subtitle: 'Selected index controls icon state and navigation',
+    ),
+    Promo(
+      title: 'Animated Icon Switching',
+      subtitle: 'AnimatedSwitcher toggles active and inactive icons',
+    ),
+    Promo(
+      title: 'Responsive & Safe Area',
+      subtitle: 'Footer adapts across different screen sizes',
+    ),
+    Promo(
+      title: 'Production-Ready Footer',
+      subtitle: 'Custom, scalable, and fintech-ready design',
+    ),
+  ];
+
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
   }
 
+  /// ✅ NAV TAP HANDLER (FIXED)
+  void _onNavTap(int index) {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -89,10 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         'Welcome',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.black54, fontSize: 12),
                       ),
                       Text(
                         'Brooklyn Simmons',
@@ -114,10 +172,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.black87,
+                  ),
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationScreen(),
+                      ),
                     );
                   },
                 ),
@@ -195,10 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                kCardTeal,
-                                kPrimaryTeal,
-                              ],
+                              colors: [kCardTeal, kPrimaryTeal],
                             ),
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -220,16 +280,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                     const SizedBox(height: 12),
                                     OutlinedButton(
                                       onPressed: () {
-                                        ScaffoldMessenger.of(context).showSnackBar(
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
                                           const SnackBar(
-                                            content: Text('Promo details coming soon!'),
+                                            content: Text(
+                                              'Promo details coming soon!',
+                                            ),
                                           ),
                                         );
                                       },
                                       style: OutlinedButton.styleFrom(
-                                        side: const BorderSide(color: Colors.white),
+                                        side: const BorderSide(
+                                          color: Colors.white,
+                                        ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                         ),
                                       ),
                                       child: const Text(
@@ -258,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: List.generate(
                       _promos.length,
-                          (index) => Container(
+                      (index) => Container(
                         width: 8,
                         height: 8,
                         margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -269,6 +337,28 @@ class _HomeScreenState extends State<HomeScreen> {
                               : kPrimaryTeal.withOpacity(0.3),
                         ),
                       ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Developer Notes (Footer architecture promos)
+                  const Text(
+                    'Developer notes',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 110,
+                    child: PageView.builder(
+                      itemCount: developerFooterPromos.length,
+                      controller: PageController(viewportFraction: 0.92),
+                      itemBuilder: (context, index) {
+                        final p = developerFooterPromos[index];
+                        return _DeveloperPromoCard(promo: p);
+                      },
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -291,11 +381,24 @@ class _HomeScreenState extends State<HomeScreen> {
                     childAspectRatio: 1.1,
                     children: [
                       _BillOption(
+                        title: 'Shop',
+                        icon: Icons.shopping_bag_outlined,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ShopHomeScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      _BillOption(
                         title: 'Recharge',
                         icon: Icons.phone_android,
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const MobileRechargeScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const MobileRechargeScreen(),
+                            ),
                           );
                         },
                       ),
@@ -304,7 +407,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.bolt,
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ElectricityBillersScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const ElectricityBillersScreen(),
+                            ),
                           );
                         },
                       ),
@@ -323,14 +428,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         icon: Icons.tv,
                         onTap: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const DthRechargeScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const DthRechargeScreen(),
+                            ),
                           );
                         },
-                      ),
-                      _BillOption(
-                        title: 'More',
-                        icon: Icons.more_horiz,
-                        onTap: () {},
                       ),
                     ],
                   ),
@@ -354,7 +456,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icons.person,
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const MobileRechargeScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const MobileRechargeScreen(),
+                              ),
                             );
                           },
                         ),
@@ -362,7 +466,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icons.person,
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const MobileRechargeScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const MobileRechargeScreen(),
+                              ),
                             );
                           },
                         ),
@@ -370,7 +476,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icons.person,
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const MobileRechargeScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const MobileRechargeScreen(),
+                              ),
                             );
                           },
                         ),
@@ -378,14 +486,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: Icons.person,
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const MobileRechargeScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const MobileRechargeScreen(),
+                              ),
                             );
                           },
                         ),
                         GestureDetector(
                           onTap: () {
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const ScanQrScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const ScanQrScreen(),
+                              ),
                             );
                           },
                           child: Container(
@@ -403,7 +515,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ],
                             ),
-                            child: const Icon(Icons.qr_code_scanner, color: Colors.white),
+                            child: const Icon(
+                              Icons.qr_code_scanner,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                       ],
@@ -415,83 +530,260 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: kCardLight,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) {
-            if (index == 0) return;
-            if (index == 1) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const TransactionsScreen()),
-              );
-              return;
-            }
-            if (index == 2) {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const ScanQrScreen()),
-              );
-              return;
-            }
-            if (index == 3) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const WalletScreen()),
-              );
-              return;
-            }
-            if (index == 4) {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              );
-              return;
-            }
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.black87,
-          unselectedItemColor: Colors.black54,
-          backgroundColor: kCardLight,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 0 ? Icons.home : Icons.home_outlined),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 1 ? Icons.receipt_long : Icons.receipt_long_outlined),
-              label: 'Transactions',
-            ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: kPrimaryYellow,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
+      bottomNavigationBar: SizedBox(
+        height: 100,
+        child: Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            /// WHITE FOOTER BAR
+            Container(
+              height: 70,
+              margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08), // soft shadow
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              label: 'Scan',
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _AnimatedBottomItem(
+                    icon: Icons.home_outlined,
+                    activeIcon: Icons.home,
+                    label: 'Home',
+                    isActive: _selectedIndex == 0,
+                    onTap: () => _onNavTap(0),
+                    activeColor: Colors.black,
+                    inactiveColor: Colors.black54,
+                  ),
+                  _AnimatedBottomItem(
+                    icon: Icons.shopping_bag_outlined,
+                    activeIcon: Icons.shopping_bag,
+                    label: 'Shop',
+                    isActive: _selectedIndex == 1,
+                    onTap: () {
+                      _onNavTap(1);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ShopHomeScreen()),
+                      );
+                    },
+                    activeColor: Colors.black,
+                    inactiveColor: Colors.black54,
+                  ),
+                  const SizedBox(width: 48),
+                  _AnimatedBottomItem(
+                    icon: Icons.credit_card_outlined,
+                    activeIcon: Icons.credit_card,
+                    label: 'Card',
+                    isActive: _selectedIndex == 3,
+                    onTap: () {
+                      _onNavTap(3);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const WalletScreen()),
+                      );
+                    },
+                    activeColor: Colors.black,
+                    inactiveColor: Colors.black54,
+                  ),
+                  _AnimatedBottomItem(
+                    icon: Icons.person_outline,
+                    activeIcon: Icons.person,
+                    label: 'Profile',
+                    isActive: _selectedIndex == 4,
+                    onTap: () {
+                      _onNavTap(4);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                      );
+                    },
+                    activeColor: Colors.black,
+                    inactiveColor: Colors.black54,
+                  ),
+                ],
+              ),
             ),
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 3 ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined),
-              label: 'Wallet',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 4 ? Icons.person : Icons.person_outline),
-              label: 'Profile',
+
+            /// CENTER SCAN BUTTON (WHITE & CLEAN)
+            Positioned(
+              bottom: 30,
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.mediumImpact();
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ScanQrScreen()),
+                  );
+                },
+                child: Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 14,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.qr_code_scanner,
+                    size: 30,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
+      ),
+
+    );
+  }
+}
+
+// ================= HELPERS =================
+class _AnimatedBottomItem extends StatelessWidget {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+  final Color activeColor;
+  final Color inactiveColor;
+
+  const _AnimatedBottomItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+    required this.activeColor,
+    required this.inactiveColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isActive ? activeColor : inactiveColor;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: Icon(
+              isActive ? activeIcon : icon,
+              key: ValueKey(isActive),
+              color: color,
+              size: 22,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: color,
+              fontWeight:
+              isActive ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+class _Promo {
+  final String title;
+  final IconData icon;
+  const _Promo({required this.title, required this.icon});
+}
+
+class Promo {
+  final String title;
+  final String subtitle;
+  const Promo({required this.title, required this.subtitle});
+}
+
+class _DeveloperPromoCard extends StatelessWidget {
+  final Promo promo;
+  const _DeveloperPromoCard({required this.promo});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(Icons.layers, color: Colors.white, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  promo.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  promo.subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1.2,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -576,10 +868,7 @@ class _BillOption extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
           ],
         ),
@@ -617,14 +906,4 @@ class _RecentContact extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Promo {
-  final String title;
-  final IconData icon;
-
-  const _Promo({
-    required this.title,
-    required this.icon,
-  });
 }
