@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import 'screens/splash_screen.dart';
 import 'theme/app_colors.dart';
+import '/api.dart/api_service.dart'; // ✅ ADD THIS IMPORT
 
 void main() {
+  // ✅ REGISTER API SERVICE FOR GETX (DEPENDENCY INJECTION)
+  Get.put(ApiService());
+
   runApp(const PaymentApp());
 }
 
@@ -17,7 +22,7 @@ class PaymentApp extends StatelessWidget {
       brightness: Brightness.light,
     );
 
-    return MaterialApp(
+    return GetMaterialApp( // ✅ REQUIRED FOR GETX
       debugShowCheckedModeBanner: false,
       title: 'DEWA',
       theme: ThemeData(
@@ -42,6 +47,3 @@ class PaymentApp extends StatelessWidget {
     );
   }
 }
-
-
-

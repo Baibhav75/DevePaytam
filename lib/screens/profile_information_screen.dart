@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../theme/app_colors.dart';
+import '/api.dart/api_service.dart';
 
 class ProfileInformationScreen extends StatefulWidget {
   const ProfileInformationScreen({super.key});
@@ -12,10 +14,58 @@ class ProfileInformationScreen extends StatefulWidget {
 
 class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController(text: 'Brooklyn Simmons');
-  final _phoneController = TextEditingController(text: '1234567890');
-  final _emailController =
-      TextEditingController(text: 'brooklynsimmons@example.com');
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  bool _isLoading = true;
+  final ApiService _apiService = ApiService();
+  String? _userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserIdAndFetchProfile();
+  }
+
+  /// Load userId from SharedPreferences and fetch profile
+  Future<void> _loadUserIdAndFetchProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getString('userId'); // make sure userId is saved during login/OTP
+    if (_userId != null) {
+      await _fetchProfile();
+    } else {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User ID not found. Please login again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  /// Fetch profile from API
+  Future<void> _fetchProfile() async {
+    setState(() => _isLoading = true);
+    final response = await _apiService.getUserProfile(userId: _userId!);
+
+    if (response != null && response['Status'] == true) {
+      final data = response['Data'];
+      _nameController.text = data['FullName'] ?? '';
+      _phoneController.text = data['MobileNumber'] ?? '';
+      _emailController.text = data['Email'] ?? '';
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(response?['Message'] ?? 'Failed to fetch profile'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+
+    setState(() => _isLoading = false);
+  }
 
   @override
   void dispose() {
@@ -27,6 +77,7 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
 
   void _handleUpdate() {
     if (_formKey.currentState?.validate() ?? false) {
+      // TODO: Call update profile API here if needed
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Profile updated successfully'),
@@ -51,7 +102,9 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
@@ -81,9 +134,7 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
                   controller: _nameController,
                   decoration: _inputDecoration('Enter your name'),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Name is required';
-                    }
+                    if (value == null || value.isEmpty) return 'Name is required';
                     return null;
                   },
                 ),
@@ -95,12 +146,8 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
                   keyboardType: TextInputType.phone,
                   decoration: _inputDecoration('Enter your mobile number'),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Mobile number is required';
-                    }
-                    if (value.length < 10) {
-                      return 'Enter a valid mobile number';
-                    }
+                    if (value == null || value.isEmpty) return 'Mobile number is required';
+                    if (value.length < 10) return 'Enter a valid mobile number';
                     return null;
                   },
                 ),
@@ -112,12 +159,8 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: _inputDecoration('Enter your email address'),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Email address is required';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Enter a valid email address';
-                    }
+                    if (value == null || value.isEmpty) return 'Email address is required';
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) return 'Enter a valid email address';
                     return null;
                   },
                 ),
@@ -151,15 +194,10 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-    );
-  }
+  Widget _buildLabel(String text) => Align(
+    alignment: Alignment.centerLeft,
+    child: Text(text, style: const TextStyle(fontWeight: FontWeight.w600)),
+  );
 
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
@@ -180,7 +218,3 @@ class _ProfileInformationScreenState extends State<ProfileInformationScreen> {
     );
   }
 }
-
-
-
-

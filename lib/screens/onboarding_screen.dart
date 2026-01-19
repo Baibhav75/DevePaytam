@@ -1,42 +1,33 @@
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 import '../theme/app_colors.dart';
 import 'login_screen.dart';
 
-class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+// Controller for onboarding state
+class OnboardingController extends GetxController {
+  var currentPage = 0.obs;
+  final PageController pageController = PageController();
 
-  @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  void nextPage(int totalPages) {
+    if (currentPage.value == totalPages - 1) {
+      goToLogin();
+    } else {
+      pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void goToLogin() {
+    Get.off(() => LoginScreen());
+  }
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
-  final PageController _controller = PageController();
-  int _currentPage = 0;
+class OnboardingScreen extends StatelessWidget {
+  OnboardingScreen({super.key});
 
-  void _navigateToLogin() {
-    if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
-  }
-
-  void _onNext() {
-    if (_currentPage == _onboardingItems.length - 1) {
-      _navigateToLogin();
-      return;
-    }
-    _controller.nextPage(
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeOut,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final OnboardingController controller = Get.put(OnboardingController());
 
   @override
   Widget build(BuildContext context) {
@@ -46,28 +37,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         child: Column(
           children: [
             const SizedBox(height: 24),
-
             // Top Fixed Image
-            Container(
-              height: 300,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Image.asset(
-                _onboardingItems[_currentPage].imagePath,
-                fit: BoxFit.contain,
-                width: double.infinity,
+            Obx(
+                  () => Container(
+                height: 300,
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Image.asset(
+                  _onboardingItems[controller.currentPage.value].imagePath,
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                ),
               ),
             ),
-
             const SizedBox(height: 24),
-
             // Swipeable Card Section
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical:70),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 70),
                 child: PageView.builder(
-                  controller: _controller,
+                  controller: controller.pageController,
                   itemCount: _onboardingItems.length,
-                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  onPageChanged: (index) => controller.currentPage.value = index,
                   itemBuilder: (context, index) {
                     final item = _onboardingItems[index];
                     return Container(
@@ -87,7 +77,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Title
                           Text(
                             item.title,
                             textAlign: TextAlign.center,
@@ -97,10 +86,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           const SizedBox(height: 12),
-
-                          // Subtitle
                           Text(
                             item.subtitle,
                             textAlign: TextAlign.center,
@@ -110,37 +96,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               height: 1.5,
                             ),
                           ),
-
                           const SizedBox(height: 24),
-
                           // Page Indicators
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: List.generate(
-                              _onboardingItems.length,
-                                  (i) => AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                margin: const EdgeInsets.symmetric(horizontal: 5),
-                                width: i == _currentPage ? 32 : 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: i == _currentPage
-                                      ? kPrimaryTeal
-                                      : Colors.grey.shade300,
-                                  borderRadius: BorderRadius.circular(5),
+                          Obx(
+                                () => Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: List.generate(
+                                _onboardingItems.length,
+                                    (i) => AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  margin: const EdgeInsets.symmetric(horizontal: 5),
+                                  width: i == controller.currentPage.value ? 32 : 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: i == controller.currentPage.value
+                                        ? kPrimaryTeal
+                                        : Colors.grey.shade300,
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-
                           const SizedBox(height: 32),
-
                           // Next / Get Started Button
                           SizedBox(
                             width: double.infinity,
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: _onNext,
+                              onPressed: () => controller.nextPage(_onboardingItems.length),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: kPrimaryTeal,
                                 foregroundColor: Colors.white,
@@ -149,21 +133,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               ),
-                              child: Text(
-                                _currentPage == _onboardingItems.length - 1
-                                    ? 'Get Started'
-                                    : 'Next',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
+                              child: Obx(
+                                    () => Text(
+                                  controller.currentPage.value == _onboardingItems.length - 1
+                                      ? 'Get Started'
+                                      : 'Next',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-
-                          const SizedBox(height: 5), // Skip Button
+                          const SizedBox(height: 5),
                           TextButton(
-                            onPressed: _navigateToLogin,
+                            onPressed: controller.goToLogin,
                             child: const Text(
                               'Skip',
                               style: TextStyle(
@@ -203,20 +188,16 @@ const List<_OnboardingItem> _onboardingItems = [
   _OnboardingItem(
     imagePath: 'assets/onboarding_pay_contact.png',
     title: 'Scan And pay easily',
-    subtitle:
-    'Scan any QR code and make fast, secure payments instantly.',
+    subtitle: 'Scan any QR code and make fast, secure payments instantly.',
   ),
   _OnboardingItem(
     imagePath: 'assets/onboarding_card.png',
     title: 'Send money easily',
-    subtitle:
-    'Transfer money quickly and safely to anyone, anytime.',
+    subtitle: 'Transfer money quickly and safely to anyone, anytime.',
   ),
   _OnboardingItem(
     imagePath: 'assets/onboarding_success.png',
     title: 'Recharge and pay bill',
-    subtitle:
-    'Recharge your mobile and pay all your bills in just a few taps.',
+    subtitle: 'Recharge your mobile and pay all your bills in just a few taps.',
   ),
-
 ];

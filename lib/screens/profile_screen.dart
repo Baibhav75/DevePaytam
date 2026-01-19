@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '/api.dart/api_service.dart';
 
 import '../theme/app_colors.dart';
 import 'profile_information_screen.dart';
@@ -22,97 +24,121 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  int _selectedIndex = 4; // Profile is selected
+  int _selectedIndex = 4; // Profile tab
+  final ApiService _apiService = ApiService();
+
+  String _name = '';
+  String _phone = '';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    setState(() => _isLoading = true);
+
+    final prefs = await SharedPreferences.getInstance();
+    final userId = prefs.getString('userId');
+
+    if (userId == null) {
+      // No user logged in, redirect to login
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => LoginScreen()),
+            (route) => false,
+      );
+      return;
+    }
+
+    final response = await _apiService.getUserProfile(userId: userId);
+
+    if (response != null && response['Status'] == true && response['Data'] != null) {
+      setState(() {
+        _name = response['Data']['FullName'] ?? 'User';
+        _phone = response['Data']['MobileNumber'] ?? '';
+        _isLoading = false;
+      });
+    } else {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to load profile'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   void _onNavItemTapped(int index) {
-    if (index == 0) {
+    if (index == _selectedIndex) return;
+
+    Widget? destination;
+    switch (index) {
+      case 0:
+        destination = const HomeScreen();
+        break;
+      case 1:
+        destination = const TransactionsScreen();
+        break;
+      case 2:
+        destination = const ScanQrScreen();
+        break;
+      case 3:
+        destination = const WalletScreen();
+        break;
+      case 4:
+        return; // Already on Profile
+    }
+
+    if (destination != null) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        MaterialPageRoute(builder: (_) => destination!),
       );
-      return;
     }
-    if (index == 1) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const TransactionsScreen()),
-      );
-      return;
-    }
-    if (index == 2) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const ScanQrScreen()),
-      );
-      return;
-    }
-    if (index == 3) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const WalletScreen()),
-      );
-      return;
-    }
-    if (index == 4) {
-      // Already on profile, do nothing
-      return;
-    }
-    setState(() {
-      _selectedIndex = index;
-    });
+    setState(() => _selectedIndex = index);
   }
 
   void _showLogoutDialog() {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
           title: const Text(
             'Logout',
-            style: TextStyle(
-              color: Colors.black87,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
           ),
           content: const Text(
             'Do you want to logout?',
-            style: TextStyle(
-              color: Colors.black87,
-            ),
+            style: TextStyle(color: Colors.black87),
           ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-              },
+              onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'No',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600),
               ),
             ),
             ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                // Navigate to login screen and clear navigation stack
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.clear(); // Clear all saved data
                 Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
+                  MaterialPageRoute(builder: (_) =>  LoginScreen()),
+                      (route) => false,
                 );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimaryYellow,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: const Text(
                 'Yes',
-                style: TextStyle(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -124,71 +150,68 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
-          // Header Section - Full coverage from top
           Container(
             color: kPrimaryYellow,
-            padding: EdgeInsets.only(
-              top: statusBarHeight + 20,
-              bottom: 20,
-              left: 20,
-              right: 20,
-            ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage('assets/logo.png'),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
-                        Text(
-                          'Brooklyn Simmons',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+            padding: EdgeInsets.only(top: statusBarHeight + 20, bottom: 20, left: 20, right: 20),
+            child: _isLoading
+                ? const SizedBox(
+              height: 80,
+              child: Center(child: CircularProgressIndicator()),
+            )
+                : Row(
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundImage: AssetImage('assets/logo.png'),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _name,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          '+91 1234567890',
-                          style: TextStyle(color: Colors.black54),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(_phone, style: const TextStyle(color: Colors.black54)),
+                    ],
                   ),
-                  _buildQrIcon(),
-                ],
-              ),
+                ),
+                _buildQrIcon(),
+              ],
             ),
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  const SizedBox(height: 12),
-                  ..._profileOptions.map((option) => _ProfileTile(option: option)),
-                  const SizedBox(height: 12),
-                  ListTile(
-                    leading: const Icon(Icons.logout, color: Colors.red),
-                    title: const Text(
-                      'Logout',
-                      style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
-                    ),
-                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                    onTap: _showLogoutDialog,
+          ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                const SizedBox(height: 12),
+                ..._profileOptions.map((option) => _ProfileTile(option: option)),
+                const SizedBox(height: 12),
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.red),
+                  title: const Text(
+                    'Logout',
+                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600),
                   ),
-                ],
-              ),
+                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                  onTap: _showLogoutDialog,
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: kCardLight,
@@ -197,7 +220,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               color: Colors.black.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
-            ),
+            )
           ],
         ),
         child: BottomNavigationBar(
@@ -219,10 +242,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             BottomNavigationBarItem(
               icon: Container(
                 padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: kPrimaryYellow,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: kPrimaryYellow, shape: BoxShape.circle),
                 child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
               ),
               label: 'Scan',
@@ -245,22 +265,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       width: 32,
       height: 32,
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(6),
-      ),
+      decoration: BoxDecoration(color: Colors.black.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
       child: const Icon(Icons.qr_code, color: Colors.black87),
     );
   }
 }
 
+// Profile options model
 class _ProfileOption {
   const _ProfileOption({required this.icon, required this.title});
-
   final IconData icon;
   final String title;
 }
 
+// List of options
 const List<_ProfileOption> _profileOptions = [
   _ProfileOption(icon: Icons.person_outline, title: 'Profile information'),
   _ProfileOption(icon: Icons.group_outlined, title: 'Referrals'),
@@ -272,9 +290,9 @@ const List<_ProfileOption> _profileOptions = [
   _ProfileOption(icon: Icons.help_outline, title: 'Help and support'),
 ];
 
+// Profile tile widget
 class _ProfileTile extends StatelessWidget {
   const _ProfileTile({required this.option});
-
   final _ProfileOption option;
 
   @override
@@ -285,43 +303,33 @@ class _ProfileTile extends StatelessWidget {
         backgroundColor: kCardYellow.withOpacity(0.3),
         child: Icon(option.icon, color: kPrimaryYellow),
       ),
-      title: Text(
-        option.title,
-        style: const TextStyle(fontWeight: FontWeight.w500),
-      ),
+      title: Text(option.title, style: const TextStyle(fontWeight: FontWeight.w500)),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: () {
-        if (option.title == 'Profile information') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ProfileInformationScreen()),
-          );
-        } else if (option.title == 'Bank account') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const BankAccountsScreen()),
-          );
-        } else if (option.title == 'Help and support') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const HelpSupportScreen()),
-          );
-        } else if (option.title == 'Privacy policy') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
-          );
-        } else if (option.title == 'Offers') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const OffersScreen()),
-          );
-        } else if (option.title == 'Voucher') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const VoucherScreen()),
-          );
-        } else if (option.title == 'Referrals') {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const ReferralsScreen()),
-          );
+        switch (option.title) {
+          case 'Profile information':
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ProfileInformationScreen()));
+            break;
+          case 'Bank account':
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const BankAccountsScreen()));
+            break;
+          case 'Help and support':
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpSupportScreen()));
+            break;
+          case 'Privacy policy':
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()));
+            break;
+          case 'Offers':
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const OffersScreen()));
+            break;
+          case 'Voucher':
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const VoucherScreen()));
+            break;
+          case 'Referrals':
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ReferralsScreen()));
+            break;
         }
       },
     );
   }
 }
-

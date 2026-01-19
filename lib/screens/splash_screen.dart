@@ -1,7 +1,6 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
 import '../theme/app_colors.dart';
 import 'onboarding_screen.dart';
 
@@ -23,9 +22,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _goToOnboarding() {
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-    );
+
+    // ✅ Using GetX for navigation
+    Get.off(() => OnboardingScreen());
   }
 
   @override
@@ -49,11 +48,13 @@ class _SplashScreenState extends State<SplashScreen> {
               fit: BoxFit.contain,
             ),
             const SizedBox(height: 18),
-
+            const CircularProgressIndicator(
+              color: Colors.white,
+              strokeWidth: 2,
+            ),
           ],
         ),
       ),
     );
   }
 }
-

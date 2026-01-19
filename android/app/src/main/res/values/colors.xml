@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Apne app ke splash ka background color daal do -->
+    <color name="launch_background_color">#1E293B</color>   <!-- Dark slate (recommended) -->
+    <!-- Ya phir -->
+    <!-- <color name="launch_background_color">#6366F1</color> --> <!-- Indigo -->
+    <!-- <color name="launch_background_color">#000000</color> --> <!-- Pure black -->
+</resources>
