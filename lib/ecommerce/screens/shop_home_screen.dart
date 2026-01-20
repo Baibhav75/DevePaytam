@@ -1,3 +1,6 @@
+import 'package:Dewa/ecommerce/screens/shopping_cart_screen.dart';
+import 'package:Dewa/ecommerce/screens/search_screen.dart';
+import 'package:Dewa/ecommerce/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
 import '../../screens/home_screen.dart';
 import '../data/dummy_data.dart';
@@ -43,39 +46,30 @@ class ShopHomeScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchScreen()),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.favorite_border),
-            onPressed: () {},
-          ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.monetization_on),
-                onPressed: () {},
-              ),
-              Positioned(
-                right: 6,
-                top: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Colors.orange,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Text(
-                    '417',
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                ),
-              )
-            ],
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+              );
+            },
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ShoppingCartScreen()),
+              );
+            },
           ),
         ],
       ),
