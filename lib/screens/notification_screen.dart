@@ -78,7 +78,7 @@ class NotificationScreen extends StatelessWidget {
           ),
           _buildNotificationItem(
             icon: Icons.smartphone,
-            iconColor: kMutedTeal,
+            iconColor: Colors.blueAccent,
             title: 'Mobile recharge',
             description: 'You have successfully done mobile recharge \$59.00',
             date: '21 mar',

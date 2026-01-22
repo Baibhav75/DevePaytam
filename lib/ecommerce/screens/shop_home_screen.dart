@@ -6,9 +6,83 @@ import '../../screens/home_screen.dart';
 import '../data/dummy_data.dart';
 import '../widgets/banner_carousel.dart';
 import '../widgets/category_card.dart';
+import '/ecommerce/screens/locationpage.dart';
 
-class ShopHomeScreen extends StatelessWidget {
+
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
+
+class ShopHomeScreen extends StatefulWidget {
   const ShopHomeScreen({super.key});
+
+  @override
+  State<ShopHomeScreen> createState() => _ShopHomeScreenState();
+}
+
+class _ShopHomeScreenState extends State<ShopHomeScreen> {
+  String _currentAddress = 'Fetching location...';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentLocation();
+  }
+
+  Future<void> _fetchCurrentLocation() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        setState(() => _currentAddress = 'Location service disabled');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          setState(() => _currentAddress = 'Permission denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        setState(() => _currentAddress = 'Enable permission in settings');
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      final place = placemarks.first;
+      setState(() {
+        _currentAddress =
+        '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}';
+      });
+    } catch (e) {
+      // Keep "Fetching location..." or set to error if critical, 
+      // but usually better to fail silently or show a generic message
+      setState(() => _currentAddress = 'Select Location');
+    }
+  }
+
+  Future<void> _handleLocationTap() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const LocationPage()),
+    );
+
+    if (result != null && result is String) {
+      setState(() {
+        _currentAddress = result;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,28 +93,49 @@ class ShopHomeScreen extends StatelessWidget {
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
 
-        /// 👈 POP ICON AS PREVIOUS PAGE
         leading: IconButton(
-          onPressed: ()
-          {
+          onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (_) => const HomeScreen(),
               ),
             );
           },
-          icon: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(Icons.arrow_back ),
-              SizedBox(width: 4),
-
-            ],
-          ),
+          icon: const Icon(Icons.arrow_back),
         ),
 
-        title: Text(
-          ' ',
+        titleSpacing: 0,
+        title: InkWell(
+          onTap: _handleLocationTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                   Icon(
+                    Icons.location_on, 
+                    size: 14, 
+                    color: Theme.of(context).iconTheme.color?.withOpacity(0.7) ?? Colors.grey,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'Delivering to',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Icon(Icons.keyboard_arrow_down, size: 16, color: Colors.red,),
+                ],
+              ),
+              Text(
+                _currentAddress,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  overflow: TextOverflow.ellipsis,
+                ),
+                maxLines: 1,
+              ),
+            ],
+          ),
         ),
 
         actions: [
@@ -73,6 +168,7 @@ class ShopHomeScreen extends StatelessWidget {
           ),
         ],
       ),
+
 
 
       body: SingleChildScrollView(
@@ -334,6 +430,8 @@ class ShopHomeScreen extends StatelessWidget {
     );
 
   }
+
+
 }
 
 

@@ -17,6 +17,8 @@ dependencies:
   shared_preferences: ^2.1.1
   get: ^4.6.6   # ✅ ADD THIS LINE FOR GETX
   flutter_native_splash: ^2.4.7
+  geolocator: ^14.0.2
+  geocoding: ^4.0.0
 
 dev_dependencies:
   flutter_test:

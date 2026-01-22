@@ -125,9 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Stack(
+      backgroundColor: Colors.black , // Dark background
+      body: Stack(
           children: [
             // Main content using IndexedStack
             Positioned.fill(
@@ -148,8 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ],
-        ),
-      ),
+    ),
     );
   }
 }
@@ -161,407 +159,329 @@ class _HomeContent extends StatefulWidget {
 }
 
 class __HomeContentState extends State<_HomeContent> {
-  int _currentPromoIndex = 0;
-  final PageController _pageController = PageController();
-
   @override
   Widget build(BuildContext context) {
-    final statusBarHeight = MediaQuery.of(context).padding.top;
-
-    return Column(
-      children: [
-        // Header Section
-        Container(
-          padding: EdgeInsets.only(
-            top: statusBarHeight + 16,
-            bottom: 16,
-            left: 20,
-            right: 20,
-          ),
-          decoration: const BoxDecoration(
-            color: kPrimaryYellow,
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(0),
-              bottomRight: Radius.circular(0),
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 120), // Space for footer
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ==================== PURPLE HEADER ====================
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  // Profile navigation is handled by footer
-                },
-                child: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: Colors.white,
-                  child: Icon(Icons.person, color: kPrimaryYellow),
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome',
-                      style: TextStyle(color: Colors.black54, fontSize: 12),
-                    ),
-                    Text(
-                      'Brooklyn Simmons',
-                      style: TextStyle(
-                        color: Colors.black87,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.search, color: Colors.black87),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SearchScreen()),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(
-                  Icons.notifications_outlined,
-                  color: Colors.black87,
-                ),
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationScreen(),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-        ),
-
-        // Content
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Quick Action Buttons
+                // Top Bar: Profile & Help
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Expanded(
-                      child: _QuickActionButton(
-                        title: 'Pay contact',
-                        icon: Icons.phone,
-                        color: kPrimaryTeal,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const PayContactScreen(),
-                            ),
-                          );
-                        },
-                      ),
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'), // Placeholder
+                      backgroundColor: Colors.white24,
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _QuickActionButton(
-                        title: 'Bank transfer',
-                        icon: Icons.account_balance,
-                        color: kCardTeal,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ToAccountScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _QuickActionButton(
-                        title: 'Self transfer',
-                        icon: Icons.swap_horiz,
-                        color: kSoftTeal,
+                     Material(
+                      color: Colors.transparent,
+                      shape: CircleBorder(side: BorderSide(color: Colors.white54)),
+                      child: InkWell(
                         onTap: () {},
+                        customBorder: const CircleBorder(),
+                        child: const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: Icon(Icons.help_outline, color: Colors.white, size: 20),
+                        ),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-
-                // Promotional Banner
-                SizedBox(
-                  height: 160,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    onPageChanged: (index) {
-                      setState(() {
-                        _currentPromoIndex = index;
-                      });
-                    },
-                    itemCount: _HomeScreenState._promos.length,
-                    itemBuilder: (context, index) {
-                      final promo = _HomeScreenState._promos[index];
-                      return Container(
-                        margin: const EdgeInsets.only(right: 12),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [kCardTeal, kPrimaryTeal],
+                
+                // "What's New" Text & Image Layout
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 6,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Have you seen\nwhat's new?",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                              height: 1.1,
+                            ),
                           ),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    promo.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  OutlinedButton(
-                                    onPressed: () {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Promo details coming soon!',
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                        color: Colors.white,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          8,
-                                        ),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Know more',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                                ],
+                          const SizedBox(height: 8),
+                          Text(
+                            "Experience an easier &\nsmarter way to navigate",
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 13,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF6200EA),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
                               ),
+                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                             ),
-                            const SizedBox(width: 16),
-                            Icon(
-                              promo.icon,
-                              size: 60,
-                              color: Colors.white.withOpacity(0.8),
-                            ),
+                            child: const Text('Explore Now >', style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: SizedBox(
+                        height: 140,
+                        // Placeholder for the 3D man sitting on chair image
+                        // In a real app we'd use Image.asset()
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                             // Abstract shapes to mimic the illustration
+                             Positioned(
+                               right: 0,
+                               bottom: 10,
+                               child: Container(
+                                 width: 80,
+                                 height: 80,
+                                 decoration: BoxDecoration(
+                                   color: Colors.white.withOpacity(0.1),
+                                   shape: BoxShape.circle,
+                                 ),
+                               ),
+                             ),
+                             const Icon(Icons.person_pin_circle_outlined, size: 80, color: Colors.white60),
                           ],
                         ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // Page Indicators
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    _HomeScreenState._promos.length,
-                        (index) => Container(
-                      width: 8,
-                      height: 8,
-                      margin: const EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _currentPromoIndex == index
-                            ? kPrimaryTeal
-                            : kPrimaryTeal.withOpacity(0.3),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Recharge and pay bill Section
-                const Text(
-                  'Recharge and pay bill',
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                GridView.count(
-                  crossAxisCount: 3,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.1,
-                  children: [
-                    _BillOption(
-                      title: 'Shop',
-                      icon: Icons.shopping_bag_outlined,
-                      onTap: () {
-                        // Shop navigation is handled by footer
-                      },
-                    ),
-                    _BillOption(
-                      title: 'Recharge',
-                      icon: Icons.phone_android,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const MobileRechargeScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _BillOption(
-                      title: 'Electricity',
-                      icon: Icons.bolt,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ElectricityBillersScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _BillOption(
-                      title: 'Gas bill',
-                      icon: Icons.local_gas_station,
-                      onTap: () {},
-                    ),
-                    _BillOption(
-                      title: 'Credit card',
-                      icon: Icons.credit_card,
-                      onTap: () {},
-                    ),
-                    _BillOption(
-                      title: 'DTH',
-                      icon: Icons.tv,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const DthRechargeScreen(),
-                          ),
-                        );
-                      },
                     ),
                   ],
-                ),
-                const SizedBox(height: 24),
-
-                // Recent transaction Section
-                const Text(
-                  'Recent transaction',
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  height: 80,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _RecentContact(
-                        icon: Icons.person,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MobileRechargeScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _RecentContact(
-                        icon: Icons.person,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MobileRechargeScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _RecentContact(
-                        icon: Icons.person,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MobileRechargeScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      _RecentContact(
-                        icon: Icons.person,
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const MobileRechargeScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const ScanQrScreen(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          margin: const EdgeInsets.only(right: 12),
-                          decoration: BoxDecoration(
-                            color: kPrimaryTeal,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: kPrimaryTeal.withOpacity(0.4),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.qr_code_scanner,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),
           ),
-        ),
-      ],
+
+          // ==================== BODY CONTENT ====================
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Money Transfers Title
+                const Text(
+                  "Money Transfers",
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 16),
+                
+                // Money Transfer Icons Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildCircleMenuOption(Icons.phone_in_talk, "To Mobile\nNumber", context, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayContactScreen()))),
+                    _buildCircleMenuOption(Icons.account_balance, "To Bank &\nSelf A/c", context, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ToAccountScreen()))),
+                    _buildCircleMenuOption(Icons.download, "Receive\nMoney", context, () {}),
+                    _buildCircleMenuOption(Icons.account_balance_wallet, "Check\nBalance", context, () {}),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Promo Chips
+                Row(
+                  children: [
+                    Expanded(child: _buildDarkPromoChip(Icons.currency_rupee, "Refer -> ₹200")),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildDarkPromoChip(Icons.savings, "Gold savings start @ ₹10")),
+                  ],
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Recharge & Bills Card
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E1E1E),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            "Recharge & Bills",
+                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text("View All", style: TextStyle(color: Color(0xFFBB86FC))),
+                          )
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 4,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 8,
+                        childAspectRatio: 0.75,
+                        children: [
+                          _buildGridOption(Icons.smartphone, "Mobile\nRecharge", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MobileRechargeScreen()))),
+                          _buildGridOption(Icons.directions_car, "FASTag\nRecharge", () {}),
+                          _buildGridOption(Icons.lightbulb_outline, "Electricity\nBill", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ElectricityBillersScreen()))),
+                          _buildGridOption(Icons.monetization_on_outlined, "Loan\nRepayment", () {}),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Other Sections (Loans, Insurance etc)
+                Row(
+                  children: [
+                    Expanded(child: _buildDarkCard("Loans", "Personal, Gold...", Icons.real_estate_agent)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildDarkCard("Insurance", "Vehicle, Health...", Icons.health_and_safety)),
+                  ],
+                ),
+                 const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(child: _buildDarkCard("Gold & Silver", "Save ₹10 daily", Icons.storefront)),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildDarkCard("Travel", "Flights, Trains...", Icons.flight)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCircleMenuOption(IconData icon, String label, BuildContext context, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF6200EA), // Bright purple
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(icon, color: Colors.white, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGridOption(IconData icon, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white24),
+            ),
+            child: Icon(icon, color: Colors.white, size: 22),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            style: const TextStyle(color: Colors.grey, fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDarkPromoChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.orange, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(color: Colors.white, fontSize: 11),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+    Widget _buildDarkCard(String title, String subtitle, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(16),
+         border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 10)),
+          const SizedBox(height: 12),
+          Align(alignment: Alignment.bottomRight, child: Icon(icon, color: const Color(0xFF8E2DE2), size: 30)),
+        ],
+      ),
     );
   }
 }
@@ -583,16 +503,16 @@ class _CustomFooter extends StatelessWidget {
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          /// WHITE FOOTER BAR
+          /// DARK FOOTER BAR
           Container(
             height: 80,
             margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFF1E1E1E), // Dark Card Color
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withOpacity(0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -607,8 +527,8 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Home',
                   isActive: selectedIndex == 0,
                   onTap: () => onNavTap(0),
-                  activeColor: Colors.black,
-                  inactiveColor: Colors.black54,
+                  activeColor: Colors.white,
+                  inactiveColor: Colors.grey,
                 ),
                 _AnimatedBottomItem(
                   icon: Icons.shopping_bag_outlined,
@@ -616,8 +536,8 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Shop',
                   isActive: selectedIndex == 1,
                   onTap: () => onNavTap(1),
-                  activeColor: Colors.black,
-                  inactiveColor: Colors.black54,
+                  activeColor: Colors.white,
+                  inactiveColor: Colors.grey,
                 ),
                 const SizedBox(width: 48), // Space for scan button
                 _AnimatedBottomItem(
@@ -626,8 +546,8 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Card',
                   isActive: selectedIndex == 3,
                   onTap: () => onNavTap(3),
-                  activeColor: Colors.black,
-                  inactiveColor: Colors.black54,
+                  activeColor: Colors.white,
+                  inactiveColor: Colors.grey,
                 ),
                 _AnimatedBottomItem(
                   icon: Icons.person_outline,
@@ -635,8 +555,8 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Profile',
                   isActive: selectedIndex == 4,
                   onTap: () => onNavTap(4),
-                  activeColor: Colors.black,
-                  inactiveColor: Colors.black54,
+                  activeColor: Colors.white,
+                  inactiveColor: Colors.grey,
                 ),
               ],
             ),
@@ -722,11 +642,11 @@ class _AdvancedScaleScanButtonState extends State<_AdvancedScaleScanButton>
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: const Color(0xFF6200EA), // Purple
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.18),
+                  color: const Color(0xFF6200EA).withOpacity(0.4),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -735,7 +655,7 @@ class _AdvancedScaleScanButtonState extends State<_AdvancedScaleScanButton>
             child: const Icon(
               Icons.qr_code_scanner,
               size: 30,
-              color: Colors.black,
+              color: Colors.white,
             ),
           ),
         ),

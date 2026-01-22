@@ -13,5 +13,13 @@ const kInputBackground = Color(0xFFE3F2FD); // Pale blue input background
 const kPrimaryTeal = kPrimaryYellow;
 const kCardTeal = kCardYellow;
 const kSoftTeal = kSoftYellow;
-const kMutedTeal = kMutedYellow;
+// Dark Purple Theme Colors
+const kPrimaryPurple = Color(0xFF6200EA); // Deep purple for primary branding
+const kDarkBackground = Color(0xFF121212); // Main dark background
+const kCardDark = Color(0xFF1E1E1E); // Dark grey for cards
+const kAccentPurple = Color(0xFFBB86FC); // Light purple accents
+const kTextWhite = Colors.white;
+const kTextGrey = Colors.grey;
+
+
 
