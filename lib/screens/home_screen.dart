@@ -1,8 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../ecommerce/screens/best_selling_section.dart';
 import '../ecommerce/screens/shop_home_screen.dart';
+import '../ecommerce/widgets/CategorySection.dart';
+import '../paytam/TapPaymentOfferSection.dart';
 import '../theme/app_colors.dart';
+import 'image_banner.dart';
 import 'search_screen.dart';
 import 'notification_screen.dart';
 import 'pay_contact_screen.dart';
@@ -125,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black , // Dark background
+      backgroundColor: const Color(0xFFF5F5F5) , // Light background
       body: Stack(
           children: [
             // Main content using IndexedStack
@@ -167,119 +171,106 @@ class __HomeContentState extends State<_HomeContent> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ==================== PURPLE HEADER ====================
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF4A00E0), Color(0xFF8E2DE2)],
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // ==================== FULL WIDTH BANNER HEADER ====================
+          SizedBox(
+            height: 280, // Taller header for full effect
+            child: Stack(
               children: [
-                // Top Bar: Profile & Help
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=11'), // Placeholder
-                      backgroundColor: Colors.white24,
-                    ),
-                     Material(
-                      color: Colors.transparent,
-                      shape: CircleBorder(side: BorderSide(color: Colors.white54)),
-                      child: InkWell(
-                        onTap: () {},
-                        customBorder: const CircleBorder(),
-                        child: const Padding(
-                          padding: EdgeInsets.all(8.0),
-                          child: Icon(Icons.help_outline, color: Colors.white, size: 20),
+                // 1. Full Width Banner Carousel
+                Positioned.fill(
+                  child: PageView(
+                    controller: PageController(viewportFraction: 1.0), // Full width
+                    children: const [
+                       _BannerCard(
+                        title: "Big Summer Sale",
+                        subtitle: "Up to 50% Off\nOn Electronics",
+                        buttonText: "Shop Now",
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFFff9966), Color(0xFFff5e62)],
                         ),
+                        icon: Icons.shopping_bag,
+                        fullWidth: true,
                       ),
-                    ),
-                  ],
+                       _BannerCard(
+                        title: "New Arrivals",
+                        subtitle: "Trendy Fashion\nStarts @ ₹499",
+                        buttonText: "Explore",
+                         gradient: LinearGradient(
+                           begin: Alignment.topLeft,
+                           end: Alignment.bottomRight,
+                           colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+                         ),
+                        icon: Icons.checkroom,
+                        fullWidth: true,
+                      ),
+                       _BannerCard(
+                        title: "Special Offer",
+                        subtitle: "Get Flat ₹100\nCashback",
+                        buttonText: "Claim",
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                           end: Alignment.bottomRight,
+                          colors: [Color(0xFF11998e), Color(0xFF38ef7d)],
+                        ),
+                        icon: Icons.account_balance_wallet,
+                        fullWidth: true,
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 24),
-                
-                // "What's New" Text & Image Layout
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 6,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            "Have you seen\nwhat's new?",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 26,
-                              fontWeight: FontWeight.bold,
-                              height: 1.1,
+
+                // 2. Overlay Top Bar (Menu & Help)
+                Positioned(
+                  top: 50,
+                  left: 20,
+                  right: 20,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Drawer Icon
+                      Builder(
+                        builder: (context) => Material(
+                          color: Colors.black26, // Semi-transparent backing
+                          shape: const CircleBorder(
+                            side: BorderSide(color: Colors.white30, width: 1.5),
+                          ),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ProfileScreen(),
+                                ),
+                              );
+                            },
+                            customBorder: const CircleBorder(),
+                            child: const Padding(
+                              padding: EdgeInsets.all(10.0),
+                              child: Icon(Icons.menu, color: Colors.white, size: 24),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Experience an easier &\nsmarter way to navigate",
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 13,
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF6200EA),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                            ),
-                            child: const Text('Explore Now >', style: TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      flex: 4,
-                      child: SizedBox(
-                        height: 140,
-                        // Placeholder for the 3D man sitting on chair image
-                        // In a real app we'd use Image.asset()
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                             // Abstract shapes to mimic the illustration
-                             Positioned(
-                               right: 0,
-                               bottom: 10,
-                               child: Container(
-                                 width: 80,
-                                 height: 80,
-                                 decoration: BoxDecoration(
-                                   color: Colors.white.withOpacity(0.1),
-                                   shape: BoxShape.circle,
-                                 ),
-                               ),
-                             ),
-                             const Icon(Icons.person_pin_circle_outlined, size: 80, color: Colors.white60),
-                          ],
                         ),
                       ),
-                    ),
-                  ],
+                      
+                      // Help Icon
+                      Material(
+                        color: Colors.black26, 
+                        shape: const CircleBorder(
+                          side: BorderSide(color: Colors.white30, width: 1.5),
+                        ),
+                        child: InkWell(
+                          onTap: () {},
+                          customBorder: const CircleBorder(),
+                          child: const Padding(
+                            padding: EdgeInsets.all(10.0),
+                            child: Icon(Icons.help_outline, color: Colors.white, size: 22),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -294,7 +285,7 @@ class __HomeContentState extends State<_HomeContent> {
                 // Money Transfers Title
                 const Text(
                   "Money Transfers",
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 
@@ -305,8 +296,8 @@ class __HomeContentState extends State<_HomeContent> {
                   children: [
                     _buildCircleMenuOption(Icons.phone_in_talk, "To Mobile\nNumber", context, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PayContactScreen()))),
                     _buildCircleMenuOption(Icons.account_balance, "To Bank &\nSelf A/c", context, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ToAccountScreen()))),
-                    _buildCircleMenuOption(Icons.download, "Receive\nMoney", context, () {}),
-                    _buildCircleMenuOption(Icons.account_balance_wallet, "Check\nBalance", context, () {}),
+                    _buildCircleMenuOption(Icons.download, "Receive\nMoney", context,() => Navigator.push(context, MaterialPageRoute(builder: (_) => const DthRechargeScreen ()))),
+                    _buildCircleMenuOption(Icons.account_balance_wallet, "Check\nBalance",context, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen()))),
                   ],
                 ),
                 
@@ -327,9 +318,16 @@ class __HomeContentState extends State<_HomeContent> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E1E),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white10),
+                    border: Border.all(color: Colors.black12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     children: [
@@ -338,15 +336,15 @@ class __HomeContentState extends State<_HomeContent> {
                         children: [
                           const Text(
                             "Recharge & Bills",
-                            style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           TextButton(
                             onPressed: () {},
-                            child: const Text("View All", style: TextStyle(color: Color(0xFFBB86FC))),
+                            child: const Text("View All", style: TextStyle(color: Color(0xFF6200EA), fontWeight: FontWeight.bold)),
                           )
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 1),
                       GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -368,21 +366,22 @@ class __HomeContentState extends State<_HomeContent> {
                 const SizedBox(height: 24),
                 
                 // Other Sections (Loans, Insurance etc)
-                Row(
-                  children: [
-                    Expanded(child: _buildDarkCard("Loans", "Personal, Gold...", Icons.real_estate_agent)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _buildDarkCard("Insurance", "Vehicle, Health...", Icons.health_and_safety)),
-                  ],
-                ),
-                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(child: _buildDarkCard("Gold & Silver", "Save ₹10 daily", Icons.storefront)),
-                    const SizedBox(width: 12),
-                    Expanded(child: _buildDarkCard("Travel", "Flights, Trains...", Icons.flight)),
-                  ],
-                ),
+                const ShoppingBannerSlider(),
+
+                const SizedBox(height: 12),
+
+                const CategorySection(),
+
+                const SizedBox(height: 12),
+
+                const BestSellingSection(),
+
+                const SizedBox(height: 12),
+
+                const TapPaymentOfferSection(),
+
+                const SizedBox(height: 12),
+
               ],
             ),
           ),
@@ -408,7 +407,7 @@ class __HomeContentState extends State<_HomeContent> {
           Text(
             label,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w500),
+            style: const TextStyle(color: Colors.black87, fontSize: 11, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -424,16 +423,16 @@ class __HomeContentState extends State<_HomeContent> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.white24),
+              border: Border.all(color: Colors.black12),
             ),
-            child: Icon(icon, color: Colors.white, size: 22),
+            child: Icon(icon, color: Colors.black87, size: 22),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             textAlign: TextAlign.center,
             maxLines: 2,
-            style: const TextStyle(color: Colors.grey, fontSize: 10),
+            style: const TextStyle(color: Colors.black54, fontSize: 10, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -444,18 +443,25 @@ class __HomeContentState extends State<_HomeContent> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white10),
+        border: Border.all(color: Colors.black12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 5,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          Icon(icon, color: Colors.orange, size: 18),
+          Icon(icon, color: const Color(0xFF6200EA), size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(color: Colors.white, fontSize: 11),
+              style: const TextStyle(color: Colors.black87, fontSize: 11, fontWeight: FontWeight.w600),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -468,16 +474,23 @@ class __HomeContentState extends State<_HomeContent> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-         border: Border.all(color: Colors.white10),
+         border: Border.all(color: Colors.black12),
+         boxShadow: [
+           BoxShadow(
+             color: Colors.black.withOpacity(0.05),
+             blurRadius: 8,
+             offset: const Offset(0, 2),
+           ),
+         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          Text(title, style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 10)),
+          Text(subtitle, style: const TextStyle(color: Colors.black54, fontSize: 10)),
           const SizedBox(height: 12),
           Align(alignment: Alignment.bottomRight, child: Icon(icon, color: const Color(0xFF8E2DE2), size: 30)),
         ],
@@ -508,11 +521,11 @@ class _CustomFooter extends StatelessWidget {
             height: 80,
             margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E), // Dark Card Color
+              color: Colors.white, // Light Card Color
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withOpacity(0.1),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -527,7 +540,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Home',
                   isActive: selectedIndex == 0,
                   onTap: () => onNavTap(0),
-                  activeColor: Colors.white,
+                  activeColor: const Color(0xFF6200EA),
                   inactiveColor: Colors.grey,
                 ),
                 _AnimatedBottomItem(
@@ -536,7 +549,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Shop',
                   isActive: selectedIndex == 1,
                   onTap: () => onNavTap(1),
-                  activeColor: Colors.white,
+                  activeColor: const Color(0xFF6200EA),
                   inactiveColor: Colors.grey,
                 ),
                 const SizedBox(width: 48), // Space for scan button
@@ -546,7 +559,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Card',
                   isActive: selectedIndex == 3,
                   onTap: () => onNavTap(3),
-                  activeColor: Colors.white,
+                  activeColor: const Color(0xFF6200EA),
                   inactiveColor: Colors.grey,
                 ),
                 _AnimatedBottomItem(
@@ -555,7 +568,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Profile',
                   isActive: selectedIndex == 4,
                   onTap: () => onNavTap(4),
-                  activeColor: Colors.white,
+                  activeColor: const Color(0xFF6200EA),
                   inactiveColor: Colors.grey,
                 ),
               ],
@@ -575,7 +588,7 @@ class _CustomFooter extends StatelessWidget {
               },
             ),
           ),
-          
+
                  ],
       ),
     );
@@ -813,11 +826,12 @@ class _BillOption extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
-          color: kCardLight.withOpacity(0.3),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.black12),
           boxShadow: [
             BoxShadow(
-              color: kPrimaryTeal.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -830,7 +844,7 @@ class _BillOption extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               title,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87),
             ),
           ],
         ),
@@ -854,17 +868,129 @@ class _RecentContact extends StatelessWidget {
         height: 60,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: kCardLight.withOpacity(0.3),
+          color: Colors.white,
           shape: BoxShape.circle,
+          border: Border.all(color: Colors.black12),
           boxShadow: [
             BoxShadow(
-              color: kPrimaryTeal.withOpacity(0.1),
+              color: Colors.black.withOpacity(0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
         child: Icon(icon, color: kPrimaryTeal),
+      ),
+    );
+  }
+}
+
+class _BannerCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String buttonText;
+  final Gradient gradient;
+  final IconData icon;
+  final bool fullWidth;
+
+  const _BannerCard({
+    required this.title,
+    required this.subtitle,
+    required this.buttonText,
+    required this.gradient,
+    required this.icon,
+    this.fullWidth = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: fullWidth ? EdgeInsets.zero : const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.fromLTRB(20, 60, 20, 20), // Add top padding for overlay icons
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: fullWidth
+            ? const BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40))
+            : BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 6,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                 Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    title.toUpperCase(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 22, // Slightly larger for header
+                    fontWeight: FontWeight.bold,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Text(
+                    buttonText,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 4,
+             child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 100, // Larger for header
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  Icon(icon, size: 80, color: Colors.white.withOpacity(0.9)), // Larger icon
+                ],
+              ),
+          ),
+        ],
       ),
     );
   }

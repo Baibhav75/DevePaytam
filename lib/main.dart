@@ -34,7 +34,7 @@ class PaymentApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme,
         themeMode: themeController.themeMode,
 
-        home: const HomeScreen(),
+        home: const SplashScreen(),
       ),
     );
   }
