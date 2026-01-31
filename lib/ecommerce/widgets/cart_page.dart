@@ -1,28 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controllers/shop_controller.dart';
 import '../models/product.dart';
 
-class CartPage extends StatefulWidget {
-  final List<Product> cartItems;
-
-  const CartPage({
-    super.key,
-    required this.cartItems,
-  });
-
-  @override
-  State<CartPage> createState() => _CartPageState();
-}
-
-class _CartPageState extends State<CartPage> {
-  double get totalAmount {
-    return widget.cartItems.fold(
-      0,
-          (sum, item) => sum + item.price,
-    );
-  }
+class CartPage extends StatelessWidget {
+  const CartPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ShopController shopController = Get.find<ShopController>();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
 
@@ -37,92 +24,112 @@ class _CartPageState extends State<CartPage> {
       ),
 
       // ================= BODY =================
-      body: widget.cartItems.isEmpty
-          ? _emptyCart()
-          : Column(
-        children: [
-          // CART LIST
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: widget.cartItems.length,
-              separatorBuilder: (_, __) =>
-              const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final product = widget.cartItems[index];
-                return _CartItemCard(
-                  product: product,
-                  onRemove: () {
-                    setState(() {
-                      widget.cartItems.removeAt(index);
-                    });
-                  },
-                );
-              },
-            ),
-          ),
+      body: Obx(() {
+        final cartItems = shopController.cartItems;
 
-          // ================= BOTTOM SUMMARY =================
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 10,
-                ),
-              ],
+        if (cartItems.isEmpty) {
+          return _emptyCart();
+        }
+
+        return Column(
+          children: [
+            // CART LIST
+            Expanded(
+              child: ListView.separated(
+                padding: const EdgeInsets.all(16),
+                itemCount: cartItems.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final product = cartItems[index];
+                  return _CartItemCard(
+                    product: product,
+                    onRemove: () {
+                      shopController.removeFromCart(index);
+                      Get.snackbar(
+                        'Removed',
+                        '${product.title} removed from cart',
+                        snackPosition: SnackPosition.BOTTOM,
+                        duration: const Duration(seconds: 1),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Total Amount",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 13,
-                      ),
+
+            // ================= BOTTOM SUMMARY =================
+            Obx(() {
+              final totalAmount = shopController.getTotalAmount();
+              final itemCount = shopController.cartCount;
+
+              return Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 10,
                     ),
-                    Text(
-                      "₹${totalAmount.toStringAsFixed(0)}",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Total ($itemCount ${itemCount == 1 ? 'item' : 'items'})",
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 13,
+                          ),
+                        ),
+                        Text(
+                          "₹${totalAmount.toStringAsFixed(0)}",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFB641B),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 28,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        // Proceed to checkout
+                        Get.snackbar(
+                          'Order Placed',
+                          'Your order has been placed successfully!',
+                          snackPosition: SnackPosition.BOTTOM,
+                          duration: const Duration(seconds: 2),
+                        );
+                      },
+                      child: const Text(
+                        "PLACE ORDER",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ],
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFB641B),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 28,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  onPressed: () {
-                    // Proceed to checkout
-                  },
-                  child: const Text(
-                    "PLACE ORDER",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+              );
+            }),
+          ],
+        );
+      }),
     );
   }
 
@@ -184,8 +191,7 @@ class _CartItemCard extends StatelessWidget {
         children: [
           // IMAGE
           ClipRRect(
-            borderRadius:
-            const BorderRadius.horizontal(left: Radius.circular(14)),
+            borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
             child: Image.network(
               product.imageUrl,
               height: 100,

@@ -7,12 +7,14 @@ import 'theme/app_colors.dart';
 import '/ecommerce/theme/theme_controller.dart';
 import '/ecommerce/theme/app_theme.dart';
 import '/api.dart/api_service.dart';
+import '/ecommerce/controllers/shop_controller.dart';
 import '';
 
 void main() {
   // ✅ REGISTER SERVICES
   Get.put(ApiService());
   Get.put(ThemeController()); // 🔥 THEME CONTROLLER
+  Get.put(ShopController()); // 🛒 SHOP CONTROLLER
 
   runApp(const PaymentApp());
 }
@@ -34,7 +36,7 @@ class PaymentApp extends StatelessWidget {
         darkTheme: AppTheme.darkTheme,
         themeMode: themeController.themeMode,
 
-        home: const SplashScreen(),
+        home: const HomeScreen(),
       ),
     );
   }

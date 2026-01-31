@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
+import '../controllers/shop_controller.dart';
 import '../models/product.dart';
 import 'cart_page.dart';
 
@@ -9,10 +10,7 @@ class ItemDetailPage extends StatefulWidget {
   const ItemDetailPage({
     super.key,
     required this.product,
-    this.onAddToCart,
   });
-
-  final VoidCallback? onAddToCart;
 
   @override
   State<ItemDetailPage> createState() => _ItemDetailPageState();
@@ -21,6 +19,7 @@ class ItemDetailPage extends StatefulWidget {
 class _ItemDetailPageState extends State<ItemDetailPage> {
   int selectedSizeIndex = 0;
   final PageController _pageController = PageController();
+  final ShopController shopController = Get.find<ShopController>();
 
   late final List<String> images;
 
@@ -35,7 +34,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   }
 
   final List<String> sizes = ["S", "M", "L", "XL", "XXL"];
-  final List<Product> cartItems = [];
 
   @override
   Widget build(BuildContext context) {
@@ -82,10 +80,26 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     Positioned(
                       top: 50,
                       right: 16,
-                      child: _circleIcon(
-                        icon: Icons.favorite_border,
-                        onTap: () {},
-                      ),
+                      child: Obx(() {
+                        final isFavorite = shopController.isFavorite(widget.product);
+                        return GestureDetector(
+                          onTap: () {
+                            shopController.toggleFavorite(widget.product);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: isFavorite ? Colors.red : Colors.black,
+                              size: 22,
+                            ),
+                          ),
+                        );
+                      }),
                     ),
                   ],
                 ),
@@ -302,27 +316,22 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                   Expanded(
                     child: TextButton(
                       onPressed: () {
-                        // 👉 Add to local list so it shows up in CartPage
-                        if (!cartItems.contains(widget.product)) {
-                          cartItems.add(widget.product);
-                        }
-                        
-                        // 👉 Trigger callback for parent state
-                        widget.onAddToCart?.call();
+                        // Add to cart using GetX controller
+                        shopController.addToCart(widget.product);
 
-                        // 👉 Show confirmation
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text("${widget.product.title} added to cart"),
-                            duration: const Duration(seconds: 1),
-                          ),
+                        // Show confirmation
+                        Get.snackbar(
+                          'Added to Cart',
+                          "${widget.product.title} added to cart",
+                          snackPosition: SnackPosition.BOTTOM,
+                          duration: const Duration(seconds: 1),
                         );
 
-                        // 👉 Navigate to cart
+                        // Navigate to cart
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => CartPage(cartItems: cartItems),
+                            builder: (_) => const CartPage(),
                           ),
                         );
                       },

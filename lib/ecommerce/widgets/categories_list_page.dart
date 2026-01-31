@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-
+import 'package:get/get.dart';
+import '../controllers/shop_controller.dart';
 import '../models/product.dart';
+import 'badge_icon.dart';
+import 'cart_page.dart';
 import 'item_detail_page.dart';
 
 class CategoriesListPage extends StatefulWidget {
@@ -17,6 +20,7 @@ class CategoriesListPage extends StatefulWidget {
 
 class _CategoriesListPageState extends State<CategoriesListPage> {
   int selectedIndex = 0;
+  final ShopController shopController = Get.find<ShopController>();
 
   final List<String> subCategories = [
     "All",
@@ -25,59 +29,6 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
     "Kids",
     "Footwear",
     "Accessories",
-  ];
-
-  final List<Product> _cartItems = [];
-
-  final List<Product> products = [
-    Product(
-      id: "1",
-      title: "Men Casual Shirt",
-      price: 799,
-      imageUrl: "https://images.unsplash.com/photo-1521334884684-d80222895322",
-      description: "A comfortable and stylish casual shirt for men.",
-      rating: 4.2,
-    ),
-    Product(
-      id: "2",
-      title: "Women Summer Dress",
-      price: 1299,
-      imageUrl: "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      description: "Light and breezy summer dress using premium fabric.",
-      rating: 4.5,
-    ),
-    Product(
-      id: "3",
-      title: "Kids Hoodie",
-      price: 599,
-      imageUrl: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea",
-      description: "Warm and cozy hoodie for kids.",
-      rating: 4.8,
-    ),
-    Product(
-      id: "4",
-      title: "Running Shoes",
-      price: 2199,
-      imageUrl: "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      description: "High performance running shoes.",
-      rating: 4.1,
-    ),
-    Product(
-      id: "5",
-      title: "Running Shoes",
-      price: 2199,
-      imageUrl: "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      description: "High performance running shoes.",
-      rating: 4.1,
-    ),
-    Product(
-      id: "6",
-      title: "Running Shoes",
-      price: 2199,
-      imageUrl: "https://images.unsplash.com/photo-1520975916090-3105956dac38",
-      description: "High performance running shoes.",
-      rating: 4.1,
-    ),
   ];
 
   @override
@@ -97,6 +48,23 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+
+        // Cart icon with badge
+        actions: [
+          Obx(() => BadgeIcon(
+            icon: Icons.shopping_cart,
+            count: shopController.cartCount,
+            iconColor: Colors.red,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CartPage(),
+                ),
+              );
+            },
+          )),
+        ],
       ),
 
       body: Column(
@@ -150,8 +118,7 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
                     setState(() => selectedIndex = index);
                   },
                   child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? const Color(0xFF6B46C1)
@@ -175,14 +142,15 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
               },
             ),
           ),
-
           const SizedBox(height: 16),
 
           // ================= PRODUCT GRID =================
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: products.length,
+              itemCount: shopController.products.length,
+
+
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 mainAxisSpacing: 16,
@@ -190,42 +158,50 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
                 childAspectRatio: 0.7,
               ),
               itemBuilder: (context, index) {
-                final product = products[index];
-                return _ProductCard(
-                  product: product,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ItemDetailPage(
-                          product: product,
-                          onAddToCart: () {
-                            setState(() {
-                              _cartItems.add(product);
-                            });
-                          },
-                        ),
-                      ),
-                    );
-                  },
+                final product = shopController.products[index];
 
-                );
+
+                return Obx(() {
+                  final isFavorite = shopController.isFavorite(product);
+
+                  return _ProductCard(
+                    product: product,
+                    isFavorite: isFavorite,
+                    onFavoriteToggle: () {
+                      shopController.toggleFavorite(product);
+                    },
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ItemDetailPage(
+                            product: product,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                });
               },
             ),
           ),
-
         ],
       ),
     );
   }
 }
+
 class _ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onTap;
+  final bool isFavorite;
+  final VoidCallback onFavoriteToggle;
 
   const _ProductCard({
     required this.product,
     required this.onTap,
+    required this.isFavorite,
+    required this.onFavoriteToggle,
   });
 
   @override
@@ -246,16 +222,47 @@ class _ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // IMAGE
-            ClipRRect(
-              borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(18)),
-              child: Image.network(
-                product.imageUrl,
-                height: 170,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+            // IMAGE + FAVORITE ICON
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  child: Image.network(
+                    product.imageUrl,
+                    height: 170,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: GestureDetector(
+                    onTap: onFavoriteToggle,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : Colors.grey,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             Padding(
@@ -263,6 +270,7 @@ class _ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // PRODUCT TITLE
                   Text(
                     product.title,
                     maxLines: 2,
@@ -272,7 +280,31 @@ class _ProductCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+
+                  const SizedBox(height: 4),
+
+                  // ⭐ RATING ROW
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        size: 16,
+                        color: Colors.amber,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        product.rating.toString(),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+
                   const SizedBox(height: 6),
+
+                  // PRICE
                   Text(
                     "₹${product.price}",
                     style: const TextStyle(

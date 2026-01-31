@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controllers/shop_controller.dart';
+import '../models/product.dart';
+import 'best_selling_list_page.dart';
+import 'best_selling_details_page.dart';
+
 class BestSellingSection extends StatelessWidget {
   const BestSellingSection({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ShopController shopController = Get.find<ShopController>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -21,12 +29,12 @@ class BestSellingSection extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                // Navigate to full Best Selling page
+                Get.to(() => const BestSellingListPage());
               },
               child: const Text(
                 "View All",
                 style: TextStyle(
-                  color: Color(0xFF6200EA),
+                  color: Color(0xFF2874F0), // Flipkart Blue
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -37,46 +45,46 @@ class BestSellingSection extends StatelessWidget {
         const SizedBox(height: 12),
 
         // HORIZONTAL PRODUCT LIST
-        SizedBox(
-          height: 210,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            itemCount: bestSellingProducts.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final item = bestSellingProducts[index];
-              return _BestSellingCard(
-                imageUrl: item["image"]!,
-                title: item["title"]!,
-                price: item["price"]!,
-                mrp: item["mrp"]!,
-                discount: item["discount"]!,
-                onTap: () {
-                  // Navigator.push(...)
-                },
-              );
-            },
-          ),
-        ),
+        Obx(() {
+          final products = shopController.bestSelling;
+          
+          if (products.isEmpty) {
+            return const SizedBox(
+              height: 230,
+              child: Center(child: Text("No best selling products")),
+            );
+          }
+
+          return SizedBox(
+            height: 230,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: products.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return _BestSellingCard(
+                  product: product,
+                  onTap: () {
+                    Get.to(() => BestSellingDetailsPage(product: product));
+                  },
+                );
+              },
+            ),
+          );
+        }),
       ],
     );
   }
 }
+
 class _BestSellingCard extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String price;
-  final String mrp;
-  final String discount;
+  final Product product;
   final VoidCallback onTap;
 
   const _BestSellingCard({
-    required this.imageUrl,
-    required this.title,
-    required this.price,
-    required this.mrp,
-    required this.discount,
+    required this.product,
     required this.onTap,
   });
 
@@ -88,13 +96,13 @@ class _BestSellingCard extends StatelessWidget {
         width: 150,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.black12),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 4),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -102,15 +110,37 @@ class _BestSellingCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // IMAGE
-            ClipRRect(
-              borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(16)),
-              child: Image.network(
-                imageUrl,
-                height: 110,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                  child: Image.network(
+                    product.imageUrl,
+                    height: 100,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                // Discount Badge snippet style
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: const BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        bottomRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      "33% OFF",
+                      style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             Padding(
@@ -120,22 +150,22 @@ class _BestSellingCard extends StatelessWidget {
                 children: [
                   // TITLE
                   Text(
-                    title,
+                    product.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
 
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
 
                   // PRICE ROW
                   Row(
                     children: [
                       Text(
-                        "₹$price",
+                        "₹${product.price.toInt()}",
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -143,7 +173,7 @@ class _BestSellingCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        "₹$mrp",
+                        "₹${(product.price * 1.5).toInt()}",
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -155,14 +185,32 @@ class _BestSellingCard extends StatelessWidget {
 
                   const SizedBox(height: 4),
 
-                  // DISCOUNT
-                  Text(
-                    discount,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  // RATING
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              product.rating.toString(),
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(width: 2),
+                            const Icon(Icons.star, color: Colors.white, size: 10),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "(2.3k)",
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -173,29 +221,4 @@ class _BestSellingCard extends StatelessWidget {
     );
   }
 }
-final List<Map<String, String>> bestSellingProducts = [
-  {
-    "title": "English Reader Book",
-    "price": "299",
-    "mrp": "499",
-    "discount": "40% OFF",
-    "image":
-    "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f",
-  },
-  {
-    "title": "Maths Practice Workbook",
-    "price": "199",
-    "mrp": "349",
-    "discount": "43% OFF",
-    "image":
-    "https://images.unsplash.com/photo-1512820790803-83ca734da794",
-  },
-  {
-    "title": "Science Activity Book",
-    "price": "249",
-    "mrp": "399",
-    "discount": "38% OFF",
-    "image":
-    "https://images.unsplash.com/photo-1524578271613-eb4b93c1b7c4",
-  },
-];
+

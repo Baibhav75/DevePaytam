@@ -1,14 +1,16 @@
 import 'package:Dewa/ecommerce/screens/shopping_cart_screen.dart';
 import 'package:Dewa/ecommerce/screens/search_screen.dart';
-import 'package:Dewa/ecommerce/screens/favorites_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../screens/home_screen.dart';
+import '../controllers/shop_controller.dart';
 import '../data/dummy_data.dart';
+import '../models/product.dart';
+import '../widgets/badge_icon.dart';
 import '../widgets/banner_carousel.dart';
-import '../widgets/category_card.dart';
+import '../widgets/CitizenCard.dart';
+import '../widgets/favorite_page.dart';
 import '/ecommerce/screens/locationpage.dart';
-
-
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
@@ -21,6 +23,7 @@ class ShopHomeScreen extends StatefulWidget {
 
 class _ShopHomeScreenState extends State<ShopHomeScreen> {
   String _currentAddress = 'Fetching location...';
+  final ShopController shopController = Get.find<ShopController>();
 
   @override
   void initState() {
@@ -65,8 +68,6 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
         '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}';
       });
     } catch (e) {
-      // Keep "Fetching location..." or set to error if critical, 
-      // but usually better to fail silently or show a generic message
       setState(() => _currentAddress = 'Select Location');
     }
   }
@@ -112,9 +113,9 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             children: [
               Row(
                 children: [
-                   Icon(
-                    Icons.location_on, 
-                    size: 14, 
+                  Icon(
+                    Icons.location_on,
+                    size: 14,
                     color: Theme.of(context).iconTheme.color?.withOpacity(0.7) ?? Colors.grey,
                   ),
                   const SizedBox(width: 4),
@@ -148,28 +149,28 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
+          Obx(() => BadgeIcon(
+            icon: Icons.favorite_border,
+            count: shopController.favoritesCount,
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+                MaterialPageRoute(builder: (_) => const FavoritePage()),
               );
             },
-          ),
-          IconButton(
-            icon: const Icon(Icons.shopping_cart),
+          )),
+          Obx(() => BadgeIcon(
+            icon: Icons.shopping_cart,
+            count: shopController.cartCount,
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ShoppingCartScreen()),
+                MaterialPageRoute(builder: (_) => ShoppingCartScreen()),
               );
             },
-          ),
+          )),
         ],
       ),
-
-
 
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -349,10 +350,10 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                                 },
                                 errorBuilder: (context, error, stackTrace) =>
                                     Container(
-                                  color: Colors.grey.shade300,
-                                  alignment: Alignment.center,
-                                  child: const Icon(Icons.image_not_supported),
-                                ),
+                                      color: Colors.grey.shade300,
+                                      alignment: Alignment.center,
+                                      child: const Icon(Icons.image_not_supported),
+                                    ),
                               ),
                             ),
                             Positioned(
@@ -360,7 +361,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
                               right: 8,
                               child: Container(
                                 padding:
-                                    const EdgeInsets.symmetric(horizontal: 6),
+                                const EdgeInsets.symmetric(horizontal: 6),
                                 height: 18,
                                 decoration: BoxDecoration(
                                   color: Colors.white,

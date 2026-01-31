@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import '/ecommerce/screens/shop_home_screen.dart';
+import 'category_products_list_page.dart';
 
 class CategoryCard extends StatelessWidget {
   final Category category;
@@ -18,8 +21,13 @@ class CategoryCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          // 👉 Navigate to category product list
+          Get.to(
+                () => CitizenCardList(
+              category: category.name,
+            ),
+          );
         },
+
         child: Stack(
           children: [
             // ================= IMAGE =================
@@ -103,6 +111,7 @@ class CategoryCard extends StatelessWidget {
                   child: const Text(
                     "ADD TO CART",
                     style: TextStyle(
+                      color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,

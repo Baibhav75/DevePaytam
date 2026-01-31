@@ -1,7 +1,7 @@
 import 'package:Dewa/ecommerce/screens/shop_home_screen.dart';
 import 'package:flutter/material.dart';
 import '../data/dummy_data.dart';
-import '../widgets/category_card.dart';
+import '../widgets/CitizenCard.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
