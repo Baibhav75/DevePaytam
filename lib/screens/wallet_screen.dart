@@ -13,7 +13,6 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-  int _selectedIndex = 3; // Wallet is selected
 
   static const List<_WalletQuickAction> _quickActions = [
     _WalletQuickAction(
@@ -36,39 +35,7 @@ class _WalletScreenState extends State<WalletScreen> {
     ),
   ];
 
-  void _onNavItemTapped(int index) {
-    if (index == 0) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-      return;
-    }
-    if (index == 1) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const TransactionsScreen()),
-      );
-      return;
-    }
-    if (index == 2) {
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const ScanQrScreen()),
-      );
-      return;
-    }
-    if (index == 3) {
-      // Already on wallet, do nothing
-      return;
-    }
-    if (index == 4) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ProfileScreen()),
-      );
-      return;
-    }
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +60,28 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                // 🔙 Back Button
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new,
+                      size: 18,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,55 +212,7 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: kCardLight,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onNavItemTapped,
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.black87,
-          unselectedItemColor: Colors.black54,
-          backgroundColor: kCardLight,
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 0 ? Icons.home : Icons.home_outlined),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 1 ? Icons.receipt_long : Icons.receipt_long_outlined),
-              label: 'Transactions',
-            ),
-            BottomNavigationBarItem(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: kPrimaryYellow,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
-              ),
-              label: 'Scan',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 3 ? Icons.account_balance_wallet : Icons.account_balance_wallet_outlined),
-              label: 'Wallet',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(_selectedIndex == 4 ? Icons.person : Icons.person_outline),
-              label: 'Profile',
-            ),
-          ],
-        ),
-      ),
+
     );
   }
 

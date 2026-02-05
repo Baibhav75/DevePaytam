@@ -94,6 +94,47 @@ class ShopController extends GetxController {
       description: "Classic blue denim jeans with perfect fit.",
       rating: 4.3,
     ),
+    Product(
+      id: "sale_1",
+      title: "Premium Tech Headphones",
+      price: 2499,
+      category: "Electronics",
+      type: "sale",
+      imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400",
+      description: "Experience studio-quality sound with these noise-cancelling headphones. Perfect for travel and long listening sessions.",
+      rating: 4.7,
+    ),
+    Product(
+      id: "sale_2",
+      title: "Smart Sports Watch",
+      price: 1899,
+      category: "Electronics",
+      type: "sale",
+      imageUrl: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400",
+      description: "Track your fitness goals with precision. Features heart rate monitoring, GPS, and 10-day battery life.",
+      rating: 4.4,
+    ),
+    Product(
+      id: "sale_3",
+      title: "Designers Summer T-Shirt",
+      price: 499,
+      category: "Men",
+      type: "sale",
+      imageUrl: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=400",
+      description: "Breathable cotton t-shirt with a modern fit. Stay cool and stylish this summer.",
+      rating: 4.2,
+    ),
+    Product(
+      id: "8",
+      title: "Running Shoes",
+      price: 100,
+      category: "Men Fashion",
+      type: "citizen",
+      imageUrl:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400",
+      description: "High performance running shoes.",
+      rating: 4.1,
+    ),
   ].obs;
 
   // Public getter
@@ -106,6 +147,10 @@ class ShopController extends GetxController {
 
   List<Product> get bestSelling {
     return _products.where((p) => p.type == "best").toList();
+  }
+
+  List<Product> get saleProducts {
+    return _products.where((p) => p.type == "sale").toList();
   }
 
   List<Product> get citizenCards {
@@ -153,4 +198,6 @@ class ShopController extends GetxController {
   void clearCart() {
     _cartItems.clear();
   }
+
+  void fetchProductsByCategoryAndSubCategory({required categoryId, required int subCategoryId}) {}
 }

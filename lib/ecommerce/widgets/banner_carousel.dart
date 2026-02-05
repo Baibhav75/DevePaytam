@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '/ecommerce/screens/shop_home_screen.dart';
-import '/ecommerce/model/banner_model.dart';
+import '/ecommerce/models/Banner_model.dart';
 
 class BannerCarousel extends StatefulWidget {
   final List<PromoBanner> banners;

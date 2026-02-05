@@ -1,12 +1,17 @@
 import 'dart:ui';
+import 'package:Dewa/screens/receiver_bank_form_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get_core/src/get_main.dart';
+import 'package:get/get_navigation/src/extension_navigation.dart';
 import '../ecommerce/screens/best_selling_section.dart';
 import '../ecommerce/screens/shop_home_screen.dart';
 import '../ecommerce/widgets/CategorySection.dart';
+import '../ecommerce/widgets/big_summer_sale_list_page.dart';
 import '../paytam/TapPaymentOfferSection.dart';
 import '../theme/app_colors.dart';
 import 'image_banner.dart';
+import 'offers_screen.dart';
 import 'search_screen.dart';
 import 'notification_screen.dart';
 import 'pay_contact_screen.dart';
@@ -46,22 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
       const ProfileScreen(),  // index 4 - Profile
     ];
   }
-
-  // Promo configuration
-  static const List<_Promo> _promos = [
-    _Promo(
-      title: 'Up to 20 % cashback on bill payment every....',
-      icon: Icons.account_balance_wallet,
-    ),
-    _Promo(
-      title: 'Get 15% off on your first recharge!',
-      icon: Icons.phone_android,
-    ),
-    _Promo(
-      title: 'Special offer: 10% discount on gas bills',
-      icon: Icons.local_gas_station,
-    ),
-  ];
 
   // Developer-only content
   final List<Promo> developerFooterPromos = const [
@@ -142,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // Custom Footer
             Positioned(
-              bottom: 0,
+              bottom: 12,
               left: 0,
               right: 0,
               child: _CustomFooter(
@@ -163,11 +152,18 @@ class _HomeContent extends StatefulWidget {
 }
 
 class __HomeContentState extends State<_HomeContent> {
+  final String bankName = "My Bank";
+
+
+
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120), // Space for footer
+      padding: const EdgeInsets.only(bottom: 120),
+      // Space for footer
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -180,32 +176,36 @@ class __HomeContentState extends State<_HomeContent> {
                 Positioned.fill(
                   child: PageView(
                     controller: PageController(viewportFraction: 1.0), // Full width
-                    children: const [
-                       _BannerCard(
+                    children: [
+                      _BannerCard(
                         title: "Big Summer Sale",
                         subtitle: "Up to 50% Off\nOn Electronics",
                         buttonText: "Shop Now",
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Color(0xFFff9966), Color(0xFFff5e62)],
+                          colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
                         ),
                         icon: Icons.shopping_bag,
                         fullWidth: true,
+                        onTap: () {
+                          Get.to(() => const BigSummerSaleListPage());
+                        },
                       ),
-                       _BannerCard(
+                       const _BannerCard(//
                         title: "New Arrivals",
                         subtitle: "Trendy Fashion\nStarts @ ₹499",
                         buttonText: "Explore",
                          gradient: LinearGradient(
                            begin: Alignment.topLeft,
                            end: Alignment.bottomRight,
-                           colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+                           //colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+                            colors: [Color(0xFFff9966), Color(0xFFff5e62)],
                          ),
                         icon: Icons.checkroom,
                         fullWidth: true,
                       ),
-                       _BannerCard(
+                       const _BannerCard(
                         title: "Special Offer",
                         subtitle: "Get Flat ₹100\nCashback",
                         buttonText: "Claim",
@@ -319,8 +319,7 @@ class __HomeContentState extends State<_HomeContent> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.black12),
+                    borderRadius: BorderRadius.circular(32),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.05),
@@ -330,33 +329,38 @@ class __HomeContentState extends State<_HomeContent> {
                     ],
                   ),
                   child: Column(
+                    mainAxisSize: MainAxisSize.min, // ⭐ height control
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
                             "Recharge & Bills",
-                            style: TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: Colors.black87, fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           TextButton(
                             onPressed: () {},
-                            child: const Text("View All", style: TextStyle(color: Color(0xFF6200EA), fontWeight: FontWeight.bold)),
+                            child: const Text("View All", style: TextStyle(color: Color(0xFF6200EA))),
+
                           )
                         ],
                       ),
-                      const SizedBox(height: 1),
                       GridView.count(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         crossAxisCount: 4,
                         mainAxisSpacing: 16,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 0.75,
+                        crossAxisSpacing: 8,//ReceiverBankFormScreen
+                        childAspectRatio: 0.9,
                         children: [
                           _buildGridOption(Icons.smartphone, "Mobile\nRecharge", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MobileRechargeScreen()))),
-                          _buildGridOption(Icons.directions_car, "FASTag\nRecharge", () {}),
+                          _buildGridOption(Icons.shopping_bag_outlined, "FASTag\nRecharge", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ShopHomeScreen()))),
                           _buildGridOption(Icons.lightbulb_outline, "Electricity\nBill", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ElectricityBillersScreen()))),
-                          _buildGridOption(Icons.monetization_on_outlined, "Loan\nRepayment", () {}),
+                          _buildGridOption(Icons.receipt, "DTH\nRecharge", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const  DthRechargeScreen()))),
+                          _buildGridOption(Icons.notification_add, "Notification", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const   NotificationScreen()))),
+                          _buildGridOption(Icons.wallet, "Wallets",() => Navigator.push(context, MaterialPageRoute(builder: (_) => const   WalletScreen()))),
+                          _buildGridOption(Icons.local_offer, "Offer", () => Navigator.push(context, MaterialPageRoute(builder: (_) => const   OffersScreen()))),
+                          _buildGridOption(Icons.directions_car, "FASTag\nRecharge", () => Navigator.push(context, MaterialPageRoute(builder: (_)  => ReceiverBankFormScreen(bankName: bankName)))),
                         ],
                       ),
                     ],
@@ -516,10 +520,10 @@ class _CustomFooter extends StatelessWidget {
       child: Stack(
         alignment: Alignment.bottomCenter,
         children: [
-          /// DARK FOOTER BAR
+
           Container(
             height: 80,
-            margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 30),
             decoration: BoxDecoration(
               color: Colors.white, // Light Card Color
               borderRadius: BorderRadius.circular(30),
@@ -594,7 +598,6 @@ class _CustomFooter extends StatelessWidget {
     );
   }
 }
-
 /// ADVANCED DUAL COLOR PULSE ANIMATION
 class _AdvancedScaleScanButton extends StatefulWidget {
   final VoidCallback onTap;
@@ -614,6 +617,7 @@ class _AdvancedScaleScanButtonState extends State<_AdvancedScaleScanButton>
   @override
   void initState() {
     super.initState();
+    var bankName = "My Bank"; // or from API
 
     _controller = AnimationController(
       vsync: this,
@@ -676,7 +680,6 @@ class _AdvancedScaleScanButtonState extends State<_AdvancedScaleScanButton>
     );
   }
 }
-
 
 // Helper class for color tween sequence
 class ColorTweenSequence extends Animatable<Color?> {
@@ -892,6 +895,7 @@ class _BannerCard extends StatelessWidget {
   final Gradient gradient;
   final IconData icon;
   final bool fullWidth;
+  final VoidCallback? onTap;
 
   const _BannerCard({
     required this.title,
@@ -900,97 +904,109 @@ class _BannerCard extends StatelessWidget {
     required this.gradient,
     required this.icon,
     this.fullWidth = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: fullWidth ? EdgeInsets.zero : const EdgeInsets.only(right: 16),
-      padding: const EdgeInsets.fromLTRB(20, 60, 20, 20), // Add top padding for overlay icons
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: fullWidth
-            ? const BorderRadius.only(bottomLeft: Radius.circular(40), bottomRight: Radius.circular(40))
-            : BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 6,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
+    return GestureDetector(                 // ✅ ADDED
+      onTap: onTap,                         // ✅ ADDED
+      behavior: HitTestBehavior.opaque,     // ✅ FULL AREA CLICKABLE
+      child: Container(
+        margin: fullWidth ? EdgeInsets.zero : const EdgeInsets.only(right: 16),
+        padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: fullWidth
+              ? const BorderRadius.only(
+            bottomLeft: Radius.circular(40),
+            bottomRight: Radius.circular(40),
+          )
+              : BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 6,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      title.toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    title.toUpperCase(),
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 10,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+                      height: 1.2,
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22, // Slightly larger for header
-                    fontWeight: FontWeight.bold,
-                    height: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Text(
-                    buttonText,
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Text(
+                      buttonText,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            flex: 4,
-             child: Stack(
+            Expanded(
+              flex: 4,
+              child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Container(
-                    width: 100, // Larger for header
+                    width: 100,
                     height: 100,
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       shape: BoxShape.circle,
                     ),
                   ),
-                  Icon(icon, size: 80, color: Colors.white.withOpacity(0.9)), // Larger icon
+                  Icon(
+                    icon,
+                    size: 80,
+                    color: Colors.white.withOpacity(0.9),
+                  ),
                 ],
               ),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }

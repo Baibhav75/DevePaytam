@@ -22,7 +22,7 @@ class CitizenCardList extends StatelessWidget {
         .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6F6),
+      backgroundColor: const Color(0xFF1090FF),
 
       // ================= APP BAR =================
       appBar: AppBar(

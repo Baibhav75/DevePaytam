@@ -9,7 +9,9 @@ import '../models/product.dart';
 import '../widgets/badge_icon.dart';
 import '../widgets/banner_carousel.dart';
 import '../widgets/CitizenCard.dart';
+import '../widgets/cart_page.dart';
 import '../widgets/favorite_page.dart';
+import '../widgets/citizen_list_page.dart';
 import '/ecommerce/screens/locationpage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -165,7 +167,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => ShoppingCartScreen()),
+                MaterialPageRoute(builder: (_) => CartPage()),
               );
             },
           )),

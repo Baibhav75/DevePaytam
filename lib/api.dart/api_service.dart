@@ -1,16 +1,18 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
+
+import '../models/home_category_model.dart';
+import '../models/sub_category_model.dart';
 import 'api_constants.dart';
 
 class ApiService extends GetxService {
   late dio.Dio dioClient;
 
-  // ✅ CONSTRUCTOR INITIALIZATION (NO onInit)
   ApiService() {
     dioClient = dio.Dio(
       dio.BaseOptions(
         baseUrl: ApiConstants.baseUrl,
-        headers: {"Content-Type": "application/json"},
+        headers: ApiConstants.jsonHeaders,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
       ),
@@ -24,7 +26,7 @@ class ApiService extends GetxService {
     );
   }
 
-  /// ✅ REGISTER USER
+  // ================= REGISTER =================
   Future<Map<String, dynamic>?> registerUser({
     required String fullName,
     required String mobile,
@@ -43,16 +45,15 @@ class ApiService extends GetxService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        return response.data;
       }
-      return null;
     } catch (e) {
-      print("❌ Register Error: $e");
-      return null;
+      Get.log("❌ Register Error: $e");
     }
+    return null;
   }
 
-  /// ✅ LOGIN USER
+  // ================= LOGIN =================
   Future<Map<String, dynamic>?> loginUser({
     required String mobile,
     required String password,
@@ -67,16 +68,15 @@ class ApiService extends GetxService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        return response.data;
       }
-      return null;
     } catch (e) {
-      print("❌ Login Error: $e");
-      return null;
+      Get.log("❌ Login Error: $e");
     }
+    return null;
   }
 
-  /// ✅ SEND OTP
+  // ================= SEND OTP =================
   Future<Map<String, dynamic>?> sendOtp(String mobile) async {
     try {
       final dio.Response response = await dioClient.post(
@@ -85,16 +85,15 @@ class ApiService extends GetxService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        return response.data;
       }
-      return null;
     } catch (e) {
-      print("❌ OTP Error: $e");
-      return null;
+      Get.log("❌ OTP Error: $e");
     }
+    return null;
   }
 
-  /// ✅ VERIFY OTP
+  // ================= VERIFY OTP =================
   Future<Map<String, dynamic>?> verifyOtp({
     required String mobile,
     required String userOtp,
@@ -109,16 +108,15 @@ class ApiService extends GetxService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        return response.data;
       }
-      return null;
     } catch (e) {
-      print("❌ Verify OTP Error: $e");
-      return null;
+      Get.log("❌ Verify OTP Error: $e");
     }
+    return null;
   }
 
-  /// ✅ GET USER PROFILE
+  // ================= GET PROFILE =================
   Future<Map<String, dynamic>?> getUserProfile({
     required String userId,
   }) async {
@@ -129,12 +127,77 @@ class ApiService extends GetxService {
       );
 
       if (response.statusCode == 200) {
-        return response.data as Map<String, dynamic>;
+        return response.data;
       }
-      return null;
     } catch (e) {
-      print("❌ Profile Error: $e");
-      return null;
+      Get.log("❌ Profile Error: $e");
     }
+    return null;
   }
+
+  // ================= CHANGE PASSWORD =================
+  Future<Map<String, dynamic>?> changePassword({
+    required int userId,
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      final dio.Response response = await dioClient.post(
+        ApiConstants.changePassword,
+        data: {
+          "UserId": userId,
+          "OldPassword": oldPassword,
+          "NewPassword": newPassword,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+    } catch (e) {
+      Get.log("❌ Change Password Error: $e");
+    }
+    return null;
+  }
+
+  // homecategory service
+  Future<HomeCategoryResponse?> getCategories() async {
+    try {
+      final response = await dioClient.get(
+        ApiConstants.getCategories,
+      );
+
+      if (response.statusCode == 200) {
+        return HomeCategoryResponse.fromJson(response.data);
+      }
+    } catch (e) {
+      Get.log("❌ Category Error: $e");
+    }
+    return null;
+  }
+
+  // ================= SUB CATEGORIES =================
+  Future<SubCategoryResponse?> getSubCategoriesByCategory({
+    required int categoryId,
+  }) async {
+    try {
+      final dio.Response response = await dioClient.get(
+        ApiConstants.getSubCategoriesByCategory,
+        queryParameters: {
+          "categoryId": categoryId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return SubCategoryResponse.fromJson(response.data);
+      }
+    } catch (e) {
+      Get.log("❌ SubCategory Error: $e");
+    }
+    return null;
+  }
+
+
+
 }
+

@@ -36,11 +36,21 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     super.dispose();
   }
 
-  Future<void> _saveUserId(String userId) async {
+  Future<void> _saveUserData(Map<String, dynamic> data) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('userId', userId);
-    print("💾 UserId saved: $userId");
+
+    await prefs.setString('userId', data['UserId'].toString());
+    await prefs.setString('fullName', data['FullName'] ?? '');
+    await prefs.setString('mobile', data['MobileNumber'] ?? '');
+    await prefs.setString('email', data['Email'] ?? '');
+
+    print("💾 USER SAVED");
+    print("ID: ${data['UserId']}");
+    print("NAME: ${data['FullName']}");
+    print("MOBILE: ${data['MobileNumber']}");
+    print("EMAIL: ${data['Email']}");
   }
+
 
   Future<void> _handleVerify() async {
     final otp = _controllers.map((c) => c.text).join();
@@ -64,8 +74,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       );
 
       if (response != null && response['Status'] == true) {
-        final userId = response['Data']['UserId'].toString();
-        await _saveUserId(userId);
+        final data = response['Data'];
+
+        await _saveUserData(data);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -80,7 +91,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 (route) => false,
           );
         }
-      } else {
+      }
+      else {
         final message =
         response != null ? response['Message'] : 'OTP verification failed';
         ScaffoldMessenger.of(context).showSnackBar(

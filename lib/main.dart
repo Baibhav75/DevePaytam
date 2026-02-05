@@ -1,18 +1,21 @@
 import 'package:Dewa/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'controller/HomeCategory_controller.dart';
+import 'controller/sub_category_controller.dart';
 import 'screens/splash_screen.dart';
 import 'theme/app_colors.dart';
 import '/ecommerce/theme/theme_controller.dart';
 import '/ecommerce/theme/app_theme.dart';
 import '/api.dart/api_service.dart';
 import '/ecommerce/controllers/shop_controller.dart';
-import '';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   // ✅ REGISTER SERVICES
   Get.put(ApiService());
+  Get.put(HomecategoryControllerController(), permanent: true);
+  Get.put(SubCategoryController());
   Get.put(ThemeController()); // 🔥 THEME CONTROLLER
   Get.put(ShopController()); // 🛒 SHOP CONTROLLER
 
