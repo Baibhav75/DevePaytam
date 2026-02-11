@@ -2,27 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/HomeCategory_controller.dart';
 import '../../controller/sub_category_controller.dart';
+
+import '../../models/category_product_model.dart';
 import '../controllers/shop_controller.dart';
 import '../models/product.dart';
 import 'badge_icon.dart';
 import 'cart_page.dart';
 import 'item_detail_page.dart';
+import '/controller/category_product_controller.dart';
 
 class CategoriesListPage extends StatefulWidget {
   final String category;
+  final int categoryId;
 
-  const CategoriesListPage({super.key, required this.category});
+
+  const CategoriesListPage({super.key, required this.category,  required this.categoryId,});
 
   @override
   State<CategoriesListPage> createState() => _CategoriesListPageState();
 }
 
 class _CategoriesListPageState extends State<CategoriesListPage> {
-  final ShopController shopController = Get.find<ShopController>();
+  final CategoryProductController productController =
+  Get.put(CategoryProductController());
 
   // ✅ ADD THIS LINE
   final HomecategoryControllerController homeCategoryController =
   Get.find<HomecategoryControllerController>();
+
+  final ShopController shopController =
+  Get.find<ShopController>();
+
 
   final SubCategoryController subCategoryController =
   Get.find<SubCategoryController>();
@@ -32,12 +42,18 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
   void initState() {
     super.initState();
 
-    /// 👇 categoryId tumhe previous screen se pass karna chahiye
-    /// abhi demo ke liye 1 use kar raha hoon
-    subCategoryController.fetchSubCategories(1);
+    // Fetch subcategories
+    subCategoryController.fetchSubCategories(widget.categoryId);
+
+    // Fetch products by category
+    productController.fetchProducts(widget.categoryId);
   }
 
-
+  @override
+  void dispose() {
+    productController.clearProducts();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,9 +76,9 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
         // Cart icon with badge
         actions: [
           Obx(
-            () => BadgeIcon(
+                () => BadgeIcon(
               icon: Icons.shopping_cart,
-              count: shopController.cartCount,
+              count: productController.cartCount.value,
               iconColor: Colors.black,
               onPressed: () {
                 Navigator.push(
@@ -73,6 +89,8 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
             ),
           ),
         ],
+
+
       ),
 
       body: Column(
@@ -136,10 +154,8 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
                     onTap: () {
                       subCategoryController.selectSubCategory(sub.subCategoryId);
 
-                      shopController.fetchProductsByCategoryAndSubCategory(
-                        categoryId: homeCategoryController.selectedCategoryId.value,
-                        subCategoryId: sub.subCategoryId,
-                      );
+                      // Currently API only supports categoryId
+                      productController.fetchProducts(widget.categoryId);
                     },
 
 
@@ -179,41 +195,49 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
 
           // ================= PRODUCT GRID =================
           Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: shopController.products.length,
+            child: Obx(() {
 
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.7,
-              ),
-              itemBuilder: (context, index) {
-                final product = shopController.products[index];
+              if (productController.isLoading.value) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
 
-                return Obx(() {
-                  final isFavorite = shopController.isFavorite(product);
+              if (productController.errorMessage.isNotEmpty) {
+                return Center(
+                  child: Text(productController.errorMessage.value),
+                );
+              }
 
-                  return _ProductCard(
-                    product: product,
-                    isFavorite: isFavorite,
-                    onFavoriteToggle: () {
-                      shopController.toggleFavorite(product);
-                    },
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ItemDetailPage(product: product),
-                        ),
-                      );
-                    },
-                  );
-                });
-              },
-            ),
+              if (productController.products.isEmpty) {
+                return const Center(
+                  child: Text("No products found"),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: productController.refreshProducts,
+                child: GridView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: productController.products.length,
+                  gridDelegate:
+                  const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 12,
+                    childAspectRatio: 0.75,
+                  ),
+                  itemBuilder: (context, index) {
+                    final product =
+                    productController.products[index];
+
+                    return _ProductCard(product: product);
+                  },
+                ),
+              );
+            }),
           ),
+
         ],
       ),
     );
@@ -221,125 +245,97 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
 }
 
 class _ProductCard extends StatelessWidget {
-  final Product product;
-  final VoidCallback onTap;
-  final bool isFavorite;
-  final VoidCallback onFavoriteToggle;
+  final CategoryProduct product;
 
-  const _ProductCard({
-    required this.product,
-    required this.onTap,
-    required this.isFavorite,
-    required this.onFavoriteToggle,
-  });
+  const _ProductCard({required this.product});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // IMAGE + FAVORITE ICON
-            Stack(
+
+    final theme = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(18),
+            ),
+            child: Image.network(
+              product.fullImageUrl,
+              height: 170,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+              const Icon(Icons.image_not_supported),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(18),
-                  ),
-                  child: Image.network(
-                    product.imageUrl,
-                    height: 170,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+
+                Text(
+                  product.productName,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
 
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: GestureDetector(
-                    onTap: onFavoriteToggle,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 6,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.grey,
-                        size: 20,
+                const SizedBox(height: 6),
+
+                Text(
+                  "₹${product.afterDiscount}",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: theme.primaryColor,
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                Row(
+                  children: [
+                    Text(
+                      "₹${product.mrp}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "-${product.discount.toStringAsFixed(0)}%",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // PRODUCT TITLE
-                  Text(
-                    product.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  // ⭐ RATING ROW
-                  Row(
-                    children: [
-                      const Icon(Icons.star, size: 16, color: Colors.amber),
-                      const SizedBox(width: 4),
-                      Text(
-                        product.rating.toString(),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // PRICE
-                  Text(
-                    "₹${product.price}",
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF6B46C1),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

@@ -3,6 +3,7 @@ import '../models/home_category_model.dart';
 import '/api.dart/api_service.dart';
 
 class HomecategoryControllerController extends GetxController {
+
   // ✅ Use Get.find instead of creating new instance
   final ApiService _apiService = Get.find<ApiService>();
 

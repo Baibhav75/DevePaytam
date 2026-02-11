@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '/controller/HomeCategory_controller.dart';
 import '/models/home_category_model.dart';
 import 'categories_list_page.dart';
+
 
 class CategoryListPage extends StatelessWidget {
   const CategoryListPage({super.key});
@@ -72,8 +72,12 @@ class _CategoryListItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () {
           Get.to(
-                () => CategoriesListPage(category: category.categoryName),
+                () => CategoriesListPage(
+              category: category.categoryName,
+              categoryId: category.categoryId, // ✅ PASS ID
+            ),
           );
+
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

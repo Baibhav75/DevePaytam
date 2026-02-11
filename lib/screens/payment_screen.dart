@@ -19,7 +19,7 @@ class PaymentScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: kPrimaryTeal,
+        backgroundColor: kPrimaryTeal,  // color: Theme.of(context).primaryColor,color: Theme.of(context).primaryColor,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),

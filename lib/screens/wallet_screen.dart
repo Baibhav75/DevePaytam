@@ -13,7 +13,6 @@ class WalletScreen extends StatefulWidget {
 }
 
 class _WalletScreenState extends State<WalletScreen> {
-
   static const List<_WalletQuickAction> _quickActions = [
     _WalletQuickAction(
       title: 'Add money',
@@ -35,13 +34,14 @@ class _WalletScreenState extends State<WalletScreen> {
     ),
   ];
 
-
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context); // ✅ yahan hona chahiye
     final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
+
       body: Column(
         children: [
           // Header Section - Full coverage from top
@@ -52,8 +52,9 @@ class _WalletScreenState extends State<WalletScreen> {
               left: 20,
               right: 20,
             ),
-            decoration: const BoxDecoration(
-              color: kPrimaryYellow,
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(0),
                 bottomRight: Radius.circular(0),
@@ -76,7 +77,7 @@ class _WalletScreenState extends State<WalletScreen> {
                     child: const Icon(
                       Icons.arrow_back_ios_new,
                       size: 18,
-                      color: Colors.black87,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -89,7 +90,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       Text(
                         'My wallet',
                         style: TextStyle(
-                          color: Colors.black87,
+                          color: Colors.white,
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
@@ -98,7 +99,7 @@ class _WalletScreenState extends State<WalletScreen> {
                       Text(
                         'Balance : \$150.00',
                         style: TextStyle(
-                          color: Colors.black87,
+                          color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
                         ),
@@ -115,12 +116,18 @@ class _WalletScreenState extends State<WalletScreen> {
                     height: 110,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [Colors.white.withOpacity(0.3), Colors.white.withOpacity(0.1)],
+                        colors: [
+                          Colors.white.withOpacity(0.3),
+                          Colors.white.withOpacity(0.1),
+                        ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.4),
+                        width: 1.5,
+                      ),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -212,7 +219,6 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
         ],
       ),
-
     );
   }
 
@@ -240,11 +246,7 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
         child: Column(
           children: [
-            Icon(
-              icon,
-              color: iconColor,
-              size: 32,
-            ),
+            Icon(icon, color: iconColor, size: 32),
             const SizedBox(height: 8),
             Text(
               title,
@@ -267,6 +269,7 @@ class _WalletScreenState extends State<WalletScreen> {
     required String amount,
     required bool isCredit,
   }) {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -275,7 +278,7 @@ class _WalletScreenState extends State<WalletScreen> {
           // Profile Picture
           CircleAvatar(
             radius: 24,
-            backgroundColor: kPrimaryYellow.withOpacity(0.2),
+            backgroundColor: theme.primaryColor.withOpacity(0.2),
             child: Text(
               name[0].toUpperCase(),
               style: TextStyle(
@@ -302,10 +305,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 const SizedBox(height: 4),
                 Text(
                   date,
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
                 ),
               ],
             ),

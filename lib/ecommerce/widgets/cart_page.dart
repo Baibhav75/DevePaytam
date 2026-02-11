@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/shop_controller.dart';
 import '../models/product.dart';
+import 'OderSummary.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -107,13 +108,8 @@ class CartPage extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {
-                        // Proceed to checkout
-                        Get.snackbar(
-                          'Order Placed',
-                          'Your order has been placed successfully!',
-                          snackPosition: SnackPosition.BOTTOM,
-                          duration: const Duration(seconds: 2),
-                        );
+                        // Proceed to checkout summary
+                        Get.to(() => const OrderSummary());
                       },
                       child: const Text(
                         "PLACE ORDER",

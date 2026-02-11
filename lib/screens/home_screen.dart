@@ -155,8 +155,6 @@ class __HomeContentState extends State<_HomeContent> {
   final String bankName = "My Bank";
 
 
-
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -181,10 +179,13 @@ class __HomeContentState extends State<_HomeContent> {
                         title: "Big Summer Sale",
                         subtitle: "Up to 50% Off\nOn Electronics",
                         buttonText: "Shop Now",
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)],
+                          colors: [
+                            Theme.of(context).primaryColor,
+                            Theme.of(context).primaryColor.withOpacity(0.75),
+                          ],
                         ),
                         icon: Icons.shopping_bag,
                         fullWidth: true,
@@ -340,7 +341,7 @@ class __HomeContentState extends State<_HomeContent> {
                           ),
                           TextButton(
                             onPressed: () {},
-                            child: const Text("View All", style: TextStyle(color: Color(0xFF6200EA))),
+                            child: Text("View All", style: TextStyle(color: Theme.of(context).primaryColor)),
 
                           )
                         ],
@@ -402,7 +403,7 @@ class __HomeContentState extends State<_HomeContent> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: const Color(0xFF6200EA), // Bright purple
+              color: Theme.of(context).primaryColor, // ✅ theme color
               borderRadius: BorderRadius.circular(20),
             ),
             child: Icon(icon, color: Colors.white, size: 28),
@@ -460,7 +461,7 @@ class __HomeContentState extends State<_HomeContent> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: const Color(0xFF6200EA), size: 18),
+          Icon(icon, color: Theme.of(context).primaryColor, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -496,7 +497,7 @@ class __HomeContentState extends State<_HomeContent> {
           const SizedBox(height: 4),
           Text(subtitle, style: const TextStyle(color: Colors.black54, fontSize: 10)),
           const SizedBox(height: 12),
-          Align(alignment: Alignment.bottomRight, child: Icon(icon, color: const Color(0xFF8E2DE2), size: 30)),
+          Align(alignment: Alignment.bottomRight, child: Icon(icon, color: Theme.of(context).primaryColor, size: 30)),
         ],
       ),
     );
@@ -544,7 +545,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Home',
                   isActive: selectedIndex == 0,
                   onTap: () => onNavTap(0),
-                  activeColor: const Color(0xFF6200EA),
+                  activeColor: Theme.of(context).primaryColor,
                   inactiveColor: Colors.grey,
                 ),
                 _AnimatedBottomItem(
@@ -553,7 +554,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Shop',
                   isActive: selectedIndex == 1,
                   onTap: () => onNavTap(1),
-                  activeColor: const Color(0xFF6200EA),
+                  activeColor: Theme.of(context).primaryColor,
                   inactiveColor: Colors.grey,
                 ),
                 const SizedBox(width: 48), // Space for scan button
@@ -563,7 +564,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Card',
                   isActive: selectedIndex == 3,
                   onTap: () => onNavTap(3),
-                  activeColor: const Color(0xFF6200EA),
+                  activeColor: Theme.of(context).primaryColor,
                   inactiveColor: Colors.grey,
                 ),
                 _AnimatedBottomItem(
@@ -572,7 +573,7 @@ class _CustomFooter extends StatelessWidget {
                   label: 'Profile',
                   isActive: selectedIndex == 4,
                   onTap: () => onNavTap(4),
-                  activeColor: const Color(0xFF6200EA),
+                  activeColor: Theme.of(context).primaryColor,
                   inactiveColor: Colors.grey,
                 ),
               ],
@@ -659,11 +660,11 @@ class _AdvancedScaleScanButtonState extends State<_AdvancedScaleScanButton>
             width: 72,
             height: 72,
             decoration: BoxDecoration(
-              color: const Color(0xFF6200EA), // Purple
+              color: Theme.of(context).primaryColor,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF6200EA).withOpacity(0.4),
+                  color: Theme.of(context).primaryColor.withOpacity(0.4),
                   blurRadius: 16,
                   offset: const Offset(0, 6),
                 ),
@@ -811,7 +812,7 @@ class _QuickActionButton extends StatelessWidget {
   }
 }
 
-class _BillOption extends StatelessWidget {
+/*class _BillOption extends StatelessWidget {
   final String title;
   final IconData icon;
   final VoidCallback onTap;
@@ -854,9 +855,9 @@ class _BillOption extends StatelessWidget {
       ),
     );
   }
-}
+}*/
 
-class _RecentContact extends StatelessWidget {
+/*class _RecentContact extends StatelessWidget {
   final IconData icon;
   final VoidCallback? onTap;
 
@@ -886,7 +887,7 @@ class _RecentContact extends StatelessWidget {
       ),
     );
   }
-}
+}*/
 
 class _BannerCard extends StatelessWidget {
   final String title;
@@ -909,9 +910,9 @@ class _BannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(                 // ✅ ADDED
-      onTap: onTap,                         // ✅ ADDED
-      behavior: HitTestBehavior.opaque,     // ✅ FULL AREA CLICKABLE
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
       child: Container(
         margin: fullWidth ? EdgeInsets.zero : const EdgeInsets.only(right: 16),
         padding: const EdgeInsets.fromLTRB(20, 60, 20, 20),

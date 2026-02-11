@@ -74,7 +74,9 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: kPrimaryTeal,
+        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.9),
+
+
         elevation: 0,
         title: const Text('Bank account', style: TextStyle(color: Colors.white)),
         leading: IconButton(
@@ -106,7 +108,8 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: kPrimaryTeal.withOpacity(0.15),
+                  backgroundColor: Theme.of(context).primaryColor.withOpacity(0.3),
+
                   child: Text(
                     account.bankName.substring(0, 1),
                     style: const TextStyle(
@@ -152,7 +155,8 @@ class _BankAccountsScreenState extends State<BankAccountsScreen> {
           child: ElevatedButton(
             onPressed: _addAccount,
             style: ElevatedButton.styleFrom(
-              backgroundColor: kPrimaryTeal,
+              backgroundColor: Theme.of(context).primaryColor.withOpacity(0.3),
+
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),

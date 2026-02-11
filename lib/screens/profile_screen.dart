@@ -44,6 +44,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final prefs = await SharedPreferences.getInstance();
 
+
     // 🔥 STEP 1: SHOW LOCAL DATA FIRST (FAST UI)
     setState(() {
       _name = prefs.getString('fullName') ?? 'User';
@@ -124,14 +125,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Column(
         children: [
           // ================= HEADER =================
           Container(
-            color: kPrimaryYellow,
+            color: theme.primaryColor,
             padding: EdgeInsets.only(
               top: statusBarHeight + 20,
               bottom: 20,
@@ -175,13 +177,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _name,
                         style: const TextStyle(
                           fontSize: 18,
+
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         _phone,
-                        style: const TextStyle(color: Colors.black54),
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ],
                   ),
@@ -245,7 +249,8 @@ class _ProfileTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         radius: 20,
-        backgroundColor: kCardYellow.withOpacity(0.3),
+        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.3),
+
         child: Icon(option.icon, color: kPrimaryYellow),
       ),
       title: Text(option.title),

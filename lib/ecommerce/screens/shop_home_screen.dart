@@ -6,9 +6,10 @@ import '../../screens/home_screen.dart';
 import '../controllers/shop_controller.dart';
 import '../data/dummy_data.dart';
 import '../models/product.dart';
+import '../widgets/CategorySection.dart';
 import '../widgets/badge_icon.dart';
 import '../widgets/banner_carousel.dart';
-import '../widgets/CitizenCard.dart';
+
 import '../widgets/cart_page.dart';
 import '../widgets/favorite_page.dart';
 import '../widgets/citizen_list_page.dart';
@@ -196,38 +197,14 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
             /// 🔥 Banner Carousel
             BannerCarousel(banners: promoBanners),
 
-            const SizedBox(height: 24),
-            Text(
-              'CITIZEN CART',
-              style: Theme.of(context).textTheme.titleLarge, // ✅
-            ),
             const SizedBox(height: 4),
-            Text(
-              'Every essential, right at your fingertips.',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: Colors.grey),
-            ),
+
+            const CategorySection(),
 
             const SizedBox(height: 16),
 
-            /// 🔥 Category Grid
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 12,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.85,
-              ),
-              itemCount: categories.length,
-              itemBuilder: (context, index) {
-                return CategoryCard(category: categories[index]);
-              },
-            ),
-            const SizedBox(height: 24),
+           
+
             /// 🚀 Today's featured brand card
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -434,9 +411,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
 
   }
 
-
 }
-
 
 class Category {
   final String name;

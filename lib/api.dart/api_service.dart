@@ -4,7 +4,7 @@ import 'package:dio/dio.dart' as dio;
 import '../models/home_category_model.dart';
 import '../models/sub_category_model.dart';
 import 'api_constants.dart';
-
+import '/models/category_product_model.dart';
 class ApiService extends GetxService {
   late dio.Dio dioClient;
 
@@ -196,6 +196,28 @@ class ApiService extends GetxService {
     }
     return null;
   }
+
+  // ================= PRODUCTS BY CATEGORY =================
+  Future<CategoryProductResponse?> getProductsByCategoryId({
+    required int categoryId,
+  }) async {
+    try {
+      final dio.Response response = await dioClient.get(
+        ApiConstants.getProductsByCategory,
+        queryParameters: {
+          "categoryId": categoryId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return CategoryProductResponse.fromJson(response.data);
+      }
+    } catch (e) {
+      Get.log("❌ Product Error: $e");
+    }
+    return null;
+  }
+
 
 
 

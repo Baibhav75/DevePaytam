@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../controllers/shop_controller.dart';
 import '../models/product.dart';
 import 'cart_page.dart';
+import 'OderSummary.dart';
 
 class ItemDetailPage extends StatefulWidget {
   final Product product;
@@ -349,7 +350,9 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                       height: double.infinity,
                       color: const Color(0xFFFB641B),
                       child: TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Get.to(() => OrderSummary(buyNowProduct: widget.product));
+                        },
                         child: const Text(
                           "BUY NOW",
                           style: TextStyle(

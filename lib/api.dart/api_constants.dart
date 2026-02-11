@@ -24,6 +24,9 @@ class ApiConstants {
       "/api/subcategories/getbycategory";
 
 
+  static const String getProductsByCategory =
+      "/api/products/get"; // 👈 only endpoint (no baseUrl here)
+
 
   // ================= COMMON HEADERS =================
   static const Map<String, String> jsonHeaders = {

@@ -11,95 +11,102 @@ class CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final HomecategoryControllerController shopController = Get.find<HomecategoryControllerController>();
+    final theme = Theme.of(context);
 
-    return Obx(
-          () {
-        // ================= LOADING =================
-        if (shopController.isLoadingCategories.value) {
-          return const Center(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+    final HomecategoryControllerController categoryController =
+    Get.find<HomecategoryControllerController>();
 
-        // ================= EMPTY =================
-        if (shopController.categories.isEmpty) {
-          return const Padding(
+    return Obx(() {
+      // ================= LOADING =================
+      if (categoryController.isLoadingCategories.value) {
+        return const Center(
+          child: Padding(
             padding: EdgeInsets.all(16),
-            child: Text(
-              "No categories available",
-              style: TextStyle(color: Colors.grey),
-            ),
-          );
-        }
-
-        final categories = shopController.categories;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ================= TITLE ROW =================
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  "Categories",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Get.to(() => const CategoryListPage());
-                  },
-                  child: const Text(
-                    "View All",
-                    style: TextStyle(
-                      color: Color(0xFF2874F0),
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // ================= CATEGORY GRID =================
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: categories.length > 8 ? 8 : categories.length,
-              gridDelegate:
-              const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 12,
-                childAspectRatio: 0.85,
-              ),
-              itemBuilder: (context, index) {
-                final HomeCategory category = categories[index];
-                return _CategoryCard(
-                  category: category,
-                  onTap: () {
-                    Get.to(
-                          () => CategoriesListPage(
-                        category: category.categoryName,
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
+            child: CircularProgressIndicator(),
+          ),
         );
-      },
-    );
+      }
+
+      // ================= EMPTY =================
+      if (categoryController.categories.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            "No categories available",
+            style: TextStyle(color: Colors.grey),
+          ),
+        );
+      }
+
+      final categories = categoryController.categories;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ================= TITLE ROW =================
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Categories",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: theme.textTheme.bodyLarge?.color,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Get.to(() => const CategoryListPage());
+                },
+                child: Text(
+                  "View All",
+                  style: TextStyle(
+                    color: theme.primaryColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // ================= CATEGORY GRID =================
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: categories.length > 8 ? 8 : categories.length,
+            gridDelegate:
+            const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 12,
+              childAspectRatio: 0.85,
+            ),
+            itemBuilder: (context, index) {
+              final HomeCategory category = categories[index];
+
+              return _CategoryCard(
+                category: category,
+                onTap: () {
+                  // ✅ Update selected category in controller
+                  categoryController.selectCategory(category.categoryId);
+
+                  // ✅ Navigate with categoryId
+                  Get.to(
+                        () => CategoriesListPage(
+                      category: category.categoryName,
+                      categoryId: category.categoryId,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      );
+    });
   }
 }
 
@@ -116,8 +123,10 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Material(
-      color: Colors.white,
+      color: theme.cardColor,
       borderRadius: BorderRadius.circular(14),
       elevation: 2,
       child: InkWell(
@@ -142,14 +151,13 @@ class _CategoryCard extends StatelessWidget {
                     );
                   },
                   errorBuilder: (context, error, stackTrace) {
-                    return const Icon(
+                    return Icon(
                       Icons.category,
                       size: 30,
-                      color: Colors.grey,
+                      color: theme.disabledColor,
                     );
                   },
                 ),
-
               ),
             ),
 
@@ -157,9 +165,9 @@ class _CategoryCard extends StatelessWidget {
             Container(
               padding:
               const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-              decoration: const BoxDecoration(
-                color: Color(0xFF6B46C1),
-                borderRadius: BorderRadius.vertical(
+              decoration: BoxDecoration(
+                color: theme.primaryColor,
+                borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(14),
                 ),
               ),
