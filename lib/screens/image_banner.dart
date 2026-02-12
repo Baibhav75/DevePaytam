@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import '../controller/Banner_controller.dart';
 
 class ImageBanner extends StatelessWidget {
   final String title;
@@ -87,31 +89,10 @@ class ShoppingBannerSlider extends StatefulWidget {
 }
 
 class _ShoppingBannerSliderState extends State<ShoppingBannerSlider> {
-  final PageController _controller =
-  PageController(viewportFraction: 0.82);
+  final BannerController bannerController = Get.put(BannerController());
+  final PageController _controller = PageController(viewportFraction: 0.82);
 
   int _currentIndex = 0;
-
-  final List<Map<String, String>> banners = [
-    {
-      "title": "top rating ",
-      "subtitle": "hot Deal ",
-      "image":
-      "https://images.unsplash.com/photo-1559526324-593bc073d938",
-    },
-    {
-      "title": "shoping ",
-      "subtitle": "Vehicle, Health & Life",
-      "image":
-      "https://images.unsplash.com/photo-1559526324-593bc073d938",
-    },
-    {
-      "title": "Investments",
-      "subtitle": "Mutual Funds, SIP",
-      "image":
-      "https://images.unsplash.com/photo-1559526324-593bc073d938",
-    },
-  ];
 
   @override
   void initState() {
@@ -123,8 +104,12 @@ class _ShoppingBannerSliderState extends State<ShoppingBannerSlider> {
 
   void autoScroll() {
     if (!mounted) return;
+    if (bannerController.banners.isEmpty) {
+      Future.delayed(const Duration(seconds: 3), autoScroll);
+      return;
+    }
 
-    _currentIndex = (_currentIndex + 1) % banners.length;
+    _currentIndex = (_currentIndex + 1) % bannerController.banners.length;
     _controller.animateToPage(
       _currentIndex,
       duration: const Duration(milliseconds: 600),
@@ -136,54 +121,69 @@ class _ShoppingBannerSliderState extends State<ShoppingBannerSlider> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // ================= SLIDER =================
-        SizedBox(
+    return Obx(() {
+      if (bannerController.isLoading.value) {
+        return const SizedBox(
           height: 180,
-          child: PageView.builder(
-            controller: _controller,
-            itemCount: banners.length,
-            onPageChanged: (index) {
-              setState(() => _currentIndex = index);
-            },
-            itemBuilder: (context, index) {
-              final item = banners[index];
-              return Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: ImageBanner(
-                  title: item["title"]!,
-                  subtitle: item["subtitle"]!,
-                  imageUrl: item["image"]!,
-                  onTap: () {},
-                ),
-              );
-            },
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      if (bannerController.banners.isEmpty) {
+        return const SizedBox.shrink();
+      }
+
+      final banners = bannerController.banners;
+
+      return Column(
+        children: [
+          // ================= SLIDER =================
+          SizedBox(
+            height: 180,
+            child: PageView.builder(
+              controller: _controller,
+              itemCount: banners.length,
+              onPageChanged: (index) {
+                setState(() => _currentIndex = index);
+              },
+              itemBuilder: (context, index) {
+                final item = banners[index];
+                return Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: ImageBanner(
+                    title: item.bannerType,
+                    subtitle: "", // No subtitle in API JSON
+                    imageUrl: item.image,
+                    onTap: () {},
+                  ),
+                );
+              },
+            ),
           ),
-        ),
 
-        const SizedBox(height: 10),
+          const SizedBox(height: 10),
 
-        // ================= DOTS =================
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(
-            banners.length,
-                (index) => AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              width: _currentIndex == index ? 18 : 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: _currentIndex == index
-                    ? const Color(0xFF6B46C1)
-                    : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(20),
+          // ================= DOTS =================
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              banners.length,
+              (index) => AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                width: _currentIndex == index ? 18 : 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: _currentIndex == index
+                      ? const Color(0xFF6B46C1)
+                      : Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(20),
+                ),
               ),
             ),
           ),
-        ),
-      ],
-    );
+        ],
+      );
+    });
   }
 }

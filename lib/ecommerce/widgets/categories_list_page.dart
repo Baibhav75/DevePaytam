@@ -4,7 +4,6 @@ import '../../controller/HomeCategory_controller.dart';
 import '../../controller/sub_category_controller.dart';
 
 import '../../models/category_product_model.dart';
-import '../controllers/shop_controller.dart';
 import '../models/product.dart';
 import 'badge_icon.dart';
 import 'cart_page.dart';
@@ -29,9 +28,6 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
   // ✅ ADD THIS LINE
   final HomecategoryControllerController homeCategoryController =
   Get.find<HomecategoryControllerController>();
-
-  final ShopController shopController =
-  Get.find<ShopController>();
 
 
   final SubCategoryController subCategoryController =
@@ -78,7 +74,7 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
           Obx(
                 () => BadgeIcon(
               icon: Icons.shopping_cart,
-              count: productController.cartCount.value,
+              count: productController.cartCount, // ✅ removed .value
               iconColor: Colors.black,
               onPressed: () {
                 Navigator.push(
@@ -89,6 +85,7 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
             ),
           ),
         ],
+
 
 
       ),
@@ -251,91 +248,124 @@ class _ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final theme = Theme.of(context);
+    final CategoryProductController controller =
+    Get.find<CategoryProductController>();
 
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return GestureDetector(
+      onTap: () {
+        Get.to(() => ItemDetailPage(
+          productId: product.productId,
+        ));
 
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(18),
+
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
             ),
-            child: Image.network(
-              product.fullImageUrl,
-              height: 170,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) =>
-              const Icon(Icons.image_not_supported),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            // IMAGE
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(18),
+              ),
+              child: Image.network(
+                product.fullImageUrl,
+                height: 170,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) =>
+                const Icon(Icons.image_not_supported),
+              ),
             ),
-          ),
 
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                Text(
-                  product.productName,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  "₹${product.afterDiscount}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: theme.primaryColor,
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-
-                Row(
-                  children: [
-                    Text(
-                      "₹${product.mrp}",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                        decoration: TextDecoration.lineThrough,
-                      ),
+                  // NAME
+                  Text(
+                    product.productName,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      "-${product.discount.toStringAsFixed(0)}%",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Colors.green,
-                      ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // PRICE
+                  Text(
+                    "₹${product.afterDiscount}",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: theme.primaryColor,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  Row(
+                    children: [
+                      Text(
+                        "₹${product.mrp}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        "-${product.discount.toStringAsFixed(0)}%",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.green,
+                        ),
+                      ),
+                      const Spacer(),
+
+                      // ADD TO CART BUTTON
+                      GestureDetector(
+                        onTap: () {
+                          controller.addToCart(product);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: theme.primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.add,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

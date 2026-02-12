@@ -10,19 +10,42 @@ class CategoryProductController extends GetxController {
   var isLoading = false.obs;
   var isRefreshing = false.obs;
   var errorMessage = ''.obs;
-  var cartCount = 0.obs;
 
+  // ================= PRODUCTS =================
   var products = <CategoryProduct>[].obs;
-  void addToCart() {
-    cartCount.value++;
-  }
   int? _currentCategoryId;
+
+  // ================= CART =================
+  var cartItems = <CategoryProduct>[].obs;
+
+  int get cartCount => cartItems.length;
+
+  void addToCart(CategoryProduct product) {
+
+    // Prevent duplicate product
+    if (!cartItems.any((item) => item.productId == product.productId)) {
+      cartItems.add(product);
+    } else {
+      Get.snackbar(
+        "Already Added",
+        "${product.productName} already in cart",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  void removeFromCart(CategoryProduct product) {
+    cartItems.removeWhere((item) => item.productId == product.productId);
+  }
+
+  void clearCart() {
+    cartItems.clear();
+  }
 
   // ================= FETCH PRODUCTS =================
   Future<void> fetchProducts(int categoryId,
       {bool isPullToRefresh = false}) async {
 
-    // Prevent duplicate API call
     if (isLoading.value && !isPullToRefresh) return;
 
     try {

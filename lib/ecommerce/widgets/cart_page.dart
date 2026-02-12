@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/shop_controller.dart';
-import '../models/product.dart';
+import '../../controller/category_product_controller.dart';
+import '../../models/category_product_model.dart';
 import 'OderSummary.dart';
 
 class CartPage extends StatelessWidget {
@@ -9,7 +9,7 @@ class CartPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ShopController shopController = Get.find<ShopController>();
+    final CategoryProductController productController = Get.find<CategoryProductController>();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -18,15 +18,22 @@ class CartPage extends StatelessWidget {
       appBar: AppBar(
         title: const Text(
           "My Cart",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white, // ✅ Title white
+          ),
         ),
         backgroundColor: const Color(0xFF6B46C1),
         centerTitle: true,
+        iconTheme: const IconThemeData(
+          color: Colors.white, // ✅ Back icon white
+        ),
       ),
+
 
       // ================= BODY =================
       body: Obx(() {
-        final cartItems = shopController.cartItems;
+        final cartItems = productController.cartItems;
 
         if (cartItems.isEmpty) {
           return _emptyCart();
@@ -45,10 +52,10 @@ class CartPage extends StatelessWidget {
                   return _CartItemCard(
                     product: product,
                     onRemove: () {
-                      shopController.removeFromCart(index);
+                      productController.removeFromCart(product);
                       Get.snackbar(
                         'Removed',
-                        '${product.title} removed from cart',
+                        '${product.productName} removed from cart',
                         snackPosition: SnackPosition.BOTTOM,
                         duration: const Duration(seconds: 1),
                       );
@@ -60,8 +67,8 @@ class CartPage extends StatelessWidget {
 
             // ================= BOTTOM SUMMARY =================
             Obx(() {
-              final totalAmount = shopController.getTotalAmount();
-              final itemCount = shopController.cartCount;
+              final totalAmount = cartItems.fold(0.0, (sum, item) => sum + item.afterDiscount);
+              final itemCount = productController.cartCount;
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -162,7 +169,7 @@ class CartPage extends StatelessWidget {
 // ================= CART ITEM CARD =================
 
 class _CartItemCard extends StatelessWidget {
-  final Product product;
+  final CategoryProduct product;
   final VoidCallback onRemove;
 
   const _CartItemCard({
@@ -189,7 +196,7 @@ class _CartItemCard extends StatelessWidget {
           ClipRRect(
             borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
             child: Image.network(
-              product.imageUrl,
+              product.fullImageUrl,
               height: 100,
               width: 90,
               fit: BoxFit.cover,
@@ -206,7 +213,7 @@ class _CartItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.title,
+                    product.productName,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -216,7 +223,7 @@ class _CartItemCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    "₹${product.price}",
+                    "₹${product.afterDiscount}",
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,

@@ -27,6 +27,15 @@ class ApiConstants {
   static const String getProductsByCategory =
       "/api/products/get"; // 👈 only endpoint (no baseUrl here)
 
+  static const String productDetails =
+      "/api/product/details";
+
+  static const String addToCart = "/api/cart/add";
+
+  static const String bannerList = "/api/banner/list";
+
+
+
 
   // ================= COMMON HEADERS =================
   static const Map<String, String> jsonHeaders = {

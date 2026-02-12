@@ -1,10 +1,14 @@
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
 
+import '../models/add_to_cart_model.dart';
 import '../models/home_category_model.dart';
+import '../models/product_detail_model.dart';
 import '../models/sub_category_model.dart';
 import 'api_constants.dart';
 import '/models/category_product_model.dart';
+import '../ecommerce/models/Banner_model.dart';
+
 class ApiService extends GetxService {
   late dio.Dio dioClient;
 
@@ -219,7 +223,59 @@ class ApiService extends GetxService {
   }
 
 
+  Future<ProductDetailResponse?> getProductDetails({
+    required String productId,
+  }) async {
+    try {
+      final response = await dioClient.get(
+        ApiConstants.productDetails,
+        queryParameters: {
+          "productId": productId,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        return ProductDetailResponse.fromJson(response.data);
+      }
+    } catch (e) {
+      Get.log("❌ Product Detail Error: $e");
+    }
+    return null;
+  }
+
+  // ================= ADD TO CART =================
+  Future<AddToCartResponse?> addToCart(
+      AddToCartRequest request) async {
+    try {
+      final response = await dioClient.post(
+        ApiConstants.addToCart,
+        data: request.toJson(),
+      );
+
+      if (response.statusCode == 200) {
+        return AddToCartResponse.fromJson(response.data);
+      }
+    } catch (e) {
+      Get.log("❌ Add To Cart Error: $e");
+    }
+
+    return null;
+  }
 
 
+  Future<BannerResponse?> getBanners() async {
+    try {
+      final dio.Response response = await dioClient.get(
+        ApiConstants.bannerList,
+      );
+
+      if (response.statusCode == 200) {
+        return BannerResponse.fromJson(response.data);
+      }
+    } catch (e) {
+      Get.log("❌ Banner API Error: $e");
+    }
+    return null;
+  }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../screens/home_screen.dart';
 import '../controllers/shop_controller.dart';
+import '../../controller/category_product_controller.dart';
 import '../data/dummy_data.dart';
 import '../models/product.dart';
 import '../widgets/CategorySection.dart';
@@ -27,6 +28,7 @@ class ShopHomeScreen extends StatefulWidget {
 class _ShopHomeScreenState extends State<ShopHomeScreen> {
   String _currentAddress = 'Fetching location...';
   final ShopController shopController = Get.find<ShopController>();
+  final CategoryProductController productController = Get.put(CategoryProductController());
 
   @override
   void initState() {
@@ -164,7 +166,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           )),
           Obx(() => BadgeIcon(
             icon: Icons.shopping_cart,
-            count: shopController.cartCount,
+            count: productController.cartCount,
             onPressed: () {
               Navigator.push(
                 context,
