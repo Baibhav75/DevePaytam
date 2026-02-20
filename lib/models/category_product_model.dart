@@ -39,6 +39,10 @@ class CategoryProduct {
   final String? image2;
   final String? image3;
 
+  // Local state for cart
+  int qty;
+  String? selectedSize;
+
   CategoryProduct({
     required this.id,
     required this.productId,
@@ -57,6 +61,8 @@ class CategoryProduct {
     required this.image1,
     this.image2,
     this.image3,
+    this.qty = 1,
+    this.selectedSize,
   });
 
   factory CategoryProduct.fromJson(Map<String, dynamic> json) {

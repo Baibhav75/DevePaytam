@@ -67,8 +67,8 @@ class CartPage extends StatelessWidget {
 
             // ================= BOTTOM SUMMARY =================
             Obx(() {
-              final totalAmount = cartItems.fold(0.0, (sum, item) => sum + item.afterDiscount);
-              final itemCount = productController.cartCount;
+              final totalAmount = cartItems.fold(0.0, (sum, item) => sum + (item.afterDiscount * item.qty));
+              final itemCount = cartItems.fold(0, (sum, item) => sum + item.qty);
 
               return Container(
                 padding: const EdgeInsets.all(16),
@@ -230,6 +230,15 @@ class _CartItemCard extends StatelessWidget {
                       color: Color(0xFF6B46C1),
                     ),
                   ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      if (product.selectedSize != null) 
+                        _badge("Size: ${product.selectedSize}"),
+                      const SizedBox(width: 8),
+                      _badge("QTY: ${product.qty}"),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -241,6 +250,25 @@ class _CartItemCard extends StatelessWidget {
             onPressed: onRemove,
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _badge(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F4F6),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          color: Color(0xFF374151),
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

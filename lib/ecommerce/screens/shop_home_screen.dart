@@ -166,7 +166,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           )),
           Obx(() => BadgeIcon(
             icon: Icons.shopping_cart,
-            count: productController.cartCount,
+            count: productController.cartCount.value,
             onPressed: () {
               Navigator.push(
                 context,

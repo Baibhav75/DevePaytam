@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../controller/product_detail_controller.dart';
 import '../../controller/category_product_controller.dart';
 import '../../models/product_detail_model.dart';
+import '/controller/profile_controller.dart';
 import 'cart_page.dart';
 import 'OderSummary.dart';
 
@@ -22,7 +23,11 @@ class ItemDetailPage extends StatefulWidget {
 class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProviderStateMixin {
   final ProductDetailController detailController = Get.put(ProductDetailController());
   final CategoryProductController productController = Get.put(CategoryProductController());
+  final ProfileController profileController = Get.put(ProfileController()); // ✅ Inject ProfileController
   final PageController _pageController = PageController();
+
+  int _quantity = 1;
+  String? _selectedSize;
 
   @override
   void initState() {
@@ -118,6 +123,11 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                   // ================= VARIANTS (IF ANY) =================
                   if (product.sizeList.isNotEmpty || product.colorList.isNotEmpty)
                     _buildVariantsSection(product, theme),
+
+                  const SizedBox(height: 24),
+
+                  // ================= QUANTITY SELECTOR =================
+                  _buildQuantitySection(theme),
                 ],
               ),
             ),
@@ -393,22 +403,39 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                 scrollDirection: Axis.horizontal,
                 itemCount: product.sizeList.length,
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
-                itemBuilder: (context, index) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: index == 0 ? theme.primaryColor : Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: index == 0 ? theme.primaryColor : Colors.grey[300]!),
-                  ),
-                  child: Text(
-                    product.sizeList[index],
-                    style: TextStyle(
-                      color: index == 0 ? Colors.white : Colors.black87,
-                      fontWeight: FontWeight.bold,
+                itemBuilder: (context, index) {
+                  final size = product.sizeList[index];
+                  final isSelected = _selectedSize == size || (_selectedSize == null && index == 0);
+                  
+                  // Set default size if not selected
+                  if (_selectedSize == null && index == 0) {
+                    _selectedSize = size;
+                  }
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedSize = size;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isSelected ? theme.primaryColor : Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: isSelected ? theme.primaryColor : Colors.grey[300]!),
+                      ),
+                      child: Text(
+                        size,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 24),
@@ -440,6 +467,53 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
     );
   }
 
+  Widget _buildQuantitySection(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("Quantity", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _qtyButton(Icons.remove, () {
+                if (_quantity > 1) {
+                  setState(() => _quantity--);
+                }
+              }),
+              Container(
+                width: 60,
+                alignment: Alignment.center,
+                child: Text(
+                  _quantity.toString(),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ),
+              _qtyButton(Icons.add, () {
+                setState(() => _quantity++);
+              }),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _qtyButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 20),
+      ),
+    );
+  }
+
   Widget _buildBottomBar(ProductDetail product, ThemeData theme) {
     return Positioned(
       bottom: 0,
@@ -464,14 +538,20 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
               flex: 1,
               child: ElevatedButton(
                 onPressed: () {
-                  productController.addToCart(product.toCategoryProduct());
+                  final userId = profileController.userId;
+                  if (userId == null) {
+                    Get.snackbar("Error", "Please login to add items to cart");
+                    return;
+                  }
 
-                  Get.snackbar(
-                    'Success',
-                    '${product.productName} added to cart',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.white,
-                    icon: const Icon(Icons.check_circle, color: Colors.green),
+                  productController.addToCartApi(
+                    product: product.toCategoryProduct(
+                      qty: _quantity,
+                      selectedSize: _selectedSize ?? "N/A",
+                    ),
+                    userId: userId,
+                    qty: _quantity,
+                    size: _selectedSize ?? "N/A",
                   );
                 },
                 style: ElevatedButton.styleFrom(
@@ -488,7 +568,12 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
             Expanded(
               flex: 1,
               child: ElevatedButton(
-                onPressed: () => Get.to(() => OrderSummary(buyNowProduct: product.toCategoryProduct())),
+                onPressed: () => Get.to(() => OrderSummary(
+                  buyNowProduct: product.toCategoryProduct(
+                    qty: _quantity,
+                    selectedSize: _selectedSize ?? "N/A",
+                  ),
+                )),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: theme.primaryColor,
                   foregroundColor: Colors.white,

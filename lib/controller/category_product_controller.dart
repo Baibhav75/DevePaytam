@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import '../api.dart/api_service.dart';
 import '../models/category_product_model.dart';
+import '../models/add_to_cart_model.dart';
+import 'profile_controller.dart';
 
 class CategoryProductController extends GetxController {
 
@@ -17,29 +19,110 @@ class CategoryProductController extends GetxController {
 
   // ================= CART =================
   var cartItems = <CategoryProduct>[].obs;
+  var cartCount = 0.obs; // ✅ now reactive
 
-  int get cartCount => cartItems.length;
+  // ================= ADD TO CART API =================
+  Future<void> addToCartApi({
+    required CategoryProduct product,
+    required int userId,
+    required int qty,
+    required String size,
+  }) async {
 
-  void addToCart(CategoryProduct product) {
+    final request = AddToCartRequest(
+      productId: product.productId,
+      userId: userId,
+      qty: qty,
+      afterDiscount: product.afterDiscount,
+      size: size,
+    );
 
-    // Prevent duplicate product
-    if (!cartItems.any((item) => item.productId == product.productId)) {
-      cartItems.add(product);
-    } else {
+    try {
+      isLoading.value = true;
+
+      final response = await _apiService.addToCart(request);
+
+      isLoading.value = false;
+
+      if (response != null && response.status) {
+
+        // Update local cart UI
+        var existingItemIndex = cartItems.indexWhere((item) => item.productId == product.productId && item.selectedSize == size);
+        
+        if (existingItemIndex != -1) {
+          // If already in cart with same size, just update quantity
+          cartItems[existingItemIndex].qty += qty;
+          cartItems.refresh(); // Trigger UI update for Obx
+        } else {
+          // Add new item to cart
+          product.qty = qty;
+          product.selectedSize = size;
+          cartItems.add(product);
+        }
+        
+        cartCount.value = cartItems.length;
+
+        Get.snackbar(
+          "Success",
+          response.message,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+
+      } else {
+        Get.snackbar(
+          "Error",
+          response?.message ?? "Failed to add cart",
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
+
+    } catch (e) {
+      isLoading.value = false;
       Get.snackbar(
-        "Already Added",
-        "${product.productName} already in cart",
+        "Error",
+        "Something went wrong",
         snackPosition: SnackPosition.BOTTOM,
       );
+      Get.log("❌ Add To Cart Error: $e");
     }
   }
 
+  // ================= ADD TO CART (SIMPLIFIED) =================
+  Future<void> addToCart(CategoryProduct product) async {
+    final ProfileController profileController = Get.find<ProfileController>();
+    final userId = profileController.userId;
+
+    if (userId == null) {
+      Get.snackbar("Error", "Please login to add items to cart");
+      return;
+    }
+
+    // Use first size if available, else N/A
+    String selectedSize = "N/A";
+    if (product.sizes.isNotEmpty) {
+      selectedSize = product.sizeList.first;
+    }
+
+    await addToCartApi(
+      product: product,
+      userId: userId,
+      qty: 1,
+      size: selectedSize,
+    );
+  }
+
+  // ================= REMOVE =================
   void removeFromCart(CategoryProduct product) {
-    cartItems.removeWhere((item) => item.productId == product.productId);
+    cartItems.removeWhere((item) => 
+      item.productId == product.productId && 
+      item.selectedSize == product.selectedSize
+    );
+    cartCount.value = cartItems.length;
   }
 
   void clearCart() {
     cartItems.clear();
+    cartCount.value = 0;
   }
 
   // ================= FETCH PRODUCTS =================
@@ -78,7 +161,6 @@ class CategoryProductController extends GetxController {
     }
   }
 
-  // ================= REFRESH =================
   Future<void> refreshProducts() async {
     if (_currentCategoryId != null) {
       await fetchProducts(_currentCategoryId!,
@@ -86,7 +168,6 @@ class CategoryProductController extends GetxController {
     }
   }
 
-  // ================= CLEAR =================
   void clearProducts() {
     products.clear();
     errorMessage.value = '';

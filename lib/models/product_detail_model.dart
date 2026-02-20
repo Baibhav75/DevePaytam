@@ -161,7 +161,7 @@ class ProductDetail {
 
   // ================= CONVERT TO CATEGORY PRODUCT (FOR CART) =================
 
-  CategoryProduct toCategoryProduct() {
+  CategoryProduct toCategoryProduct({int qty = 1, String? selectedSize}) {
     return CategoryProduct(
       id: id,
       productId: productId,
@@ -180,6 +180,8 @@ class ProductDetail {
       image1: image1 ?? '',
       image2: image2,
       image3: image3,
+      qty: qty,
+      selectedSize: selectedSize,
     );
   }
 

@@ -8,7 +8,7 @@ import '../models/product.dart';
 import 'badge_icon.dart';
 import 'cart_page.dart';
 import 'item_detail_page.dart';
-import '/controller/category_product_controller.dart';
+import '../../controller/category_product_controller.dart';
 
 class CategoriesListPage extends StatefulWidget {
   final String category;
@@ -74,7 +74,7 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
           Obx(
                 () => BadgeIcon(
               icon: Icons.shopping_cart,
-              count: productController.cartCount, // ✅ removed .value
+              count: productController.cartCount.value,
               iconColor: Colors.black,
               onPressed: () {
                 Navigator.push(
@@ -139,23 +139,21 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
               return ListView.separated(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 scrollDirection: Axis.horizontal,
-                itemCount: subCategoryController.subCategories.length,
+                itemCount: subCategoryController.subCategories.length + 1, // +1 for "All"
                 separatorBuilder: (_, __) => const SizedBox(width: 10),
                 itemBuilder: (context, index) {
-                  final sub = subCategoryController.subCategories[index];
-                  final isSelected =
-                      subCategoryController.selectedSubCategoryId.value ==
-                          sub.subCategoryId;
+                  final bool isAll = index == 0;
+                  final sub = isAll ? null : subCategoryController.subCategories[index - 1];
+                  final subId = isAll ? 0 : sub!.subCategoryId;
+                  final subName = isAll ? "All" : sub!.subCategoryName;
+                  
+                  final isSelected = subCategoryController.selectedSubCategoryId.value == subId;
 
                   return GestureDetector(
                     onTap: () {
-                      subCategoryController.selectSubCategory(sub.subCategoryId);
-
-                      // Currently API only supports categoryId
-                      productController.fetchProducts(widget.categoryId);
+                      subCategoryController.selectSubCategory(subId);
+                      // productController.fetchProducts(widget.categoryId); // Already reactive via Obx in GridView
                     },
-
-
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18,
@@ -173,7 +171,7 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
                         ),
                       ),
                       child: Text(
-                        sub.subCategoryName,
+                        subName,
                         style: TextStyle(
                           color: isSelected
                               ? Colors.white
@@ -214,23 +212,31 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
 
               return RefreshIndicator(
                 onRefresh: productController.refreshProducts,
-                child: GridView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: productController.products.length,
-                  gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 12,
-                    childAspectRatio: 0.75,
-                  ),
-                  itemBuilder: (context, index) {
-                    final product =
-                    productController.products[index];
+                child: Obx(() {
+                  final selectedSubId = subCategoryController.selectedSubCategoryId.value;
+                  final filteredProducts = selectedSubId == 0
+                      ? productController.products
+                      : productController.products.where((p) => p.subCategoryId == selectedSubId).toList();
 
-                    return _ProductCard(product: product);
-                  },
-                ),
+                  if (filteredProducts.isEmpty) {
+                    return const Center(child: Text("No products found for this sub-category"));
+                  }
+
+                  return GridView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: filteredProducts.length,
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemBuilder: (context, index) {
+                      final product = filteredProducts[index];
+                      return _ProductCard(product: product);
+                    },
+                  );
+                }),
               );
             }),
           ),
