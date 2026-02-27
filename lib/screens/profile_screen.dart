@@ -1,7 +1,10 @@
+import 'package:Dewa/screens/save_addesses_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_instance/src/extension_instance.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../controller/Auth_Controller.dart';
 import '../controller/change_password_controller.dart';
 import '../controller/profile_controller.dart';
 import '../profile/ChangePasswordScreen.dart';
@@ -26,11 +29,12 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final auth = Get.find<AuthController>();
+
   final ApiService _apiService = ApiService();
 
   String _name = '';
   String _phone = '';
-  bool _isLoading = true;
 
   @override
   void initState() {
@@ -47,26 +51,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     // 🔥 STEP 1: SHOW LOCAL DATA FIRST (FAST UI)
     setState(() {
+
       _name = prefs.getString('fullName') ?? 'User';
       _phone = prefs.getString('mobile') ?? '';
-      _isLoading = false;
     });
 
-    final userId = prefs.getString('userId');
+    final userId = prefs.getInt('userId');
 
-    // ❌ Not logged in
     if (userId == null) {
-      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) =>  LoginScreen()),
+        MaterialPageRoute(builder: (_) => LoginScreen()),
             (route) => false,
       );
       return;
     }
 
-    // 🔄 STEP 2: FETCH FROM API (BACKGROUND REFRESH)
-    final response = await _apiService.getUserProfile(userId: userId);
+// API usually string expect karta hai
 
+    final response = await _apiService.getUserProfile(
+      mobile: auth.mobileNo.value,
+    );
     if (!mounted) return;
 
     if (response != null &&
@@ -200,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               padding: EdgeInsets.zero,
               children: [
                 const SizedBox(height: 12),
-                ..._profileOptions.map((option) => _ProfileTile(option: option)),
+                ..._profileOptions.map((option) => _ProfileTile(option: option, mobile: _phone,)),
                 const SizedBox(height: 12),
                 ListTile(
                   leading: const Icon(Icons.logout, color: Colors.red),
@@ -229,6 +233,7 @@ const List<_ProfileOption> _profileOptions = [
   _ProfileOption(icon: Icons.privacy_tip_outlined, title: 'Privacy policy'),
   _ProfileOption(icon: Icons.help_outline, title: 'Help and support'),
   _ProfileOption(icon: Icons.published_with_changes, title: 'Change password'),
+  _ProfileOption(icon: Icons.location_on_outlined, title: 'Save Addresses'),
 ];
 
 
@@ -241,8 +246,13 @@ class _ProfileOption {
 
 // ================= TILE =================
 class _ProfileTile extends StatelessWidget {
-  const _ProfileTile({required this.option});
+  const _ProfileTile({
+    required this.option,
+    required this.mobile,
+  });
+
   final _ProfileOption option;
+  final String mobile;
 
   @override
   Widget build(BuildContext context) {
@@ -342,9 +352,18 @@ class _ProfileTile extends StatelessWidget {
               ),
             );
             break;
+
+          case 'Save Addresses':
+            if (mobile.isNotEmpty) {
+              Get.to(() => SaveAddressesScreen(
+                mobile: mobile,
+              ));
+            } else {
+              Get.snackbar("Error", "Mobile number not available");
+            }
+            break;
         }
       },
     );
   }
 }
-

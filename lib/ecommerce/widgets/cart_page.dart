@@ -1,15 +1,25 @@
+import 'package:Dewa/ecommerce/widgets/item_detail_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controller/Auth_Controller.dart';
 import '../../controller/category_product_controller.dart';
+import '../../controller/order_controller.dart';
 import '../../models/category_product_model.dart';
+import '../../models/order_model.dart';
 import 'OderSummary.dart';
 
 class CartPage extends StatelessWidget {
-  const CartPage({super.key});
-
+  CartPage({super.key});
+  final CategoryProductController productController = Get.find<CategoryProductController>();
+  final authController = Get.find<AuthController>();
+  final OrderController orderController =
+  Get.isRegistered<OrderController>()
+      ? Get.find<OrderController>()
+      : Get.put(OrderController());
   @override
   Widget build(BuildContext context) {
-    final CategoryProductController productController = Get.find<CategoryProductController>();
+
+
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
@@ -114,9 +124,88 @@ class CartPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
+                      // onPressed: () async {
+                      //
+                      //   final orderController = Get.put(OrderController());
+                      //   final productController = Get.find<CategoryProductController>();
+                      //
+                      //   final cartItems = productController.cartItems;
+                      //
+                      //   if (cartItems.isEmpty) {
+                      //     Get.snackbar("Cart", "Your cart is empty");
+                      //     return;
+                      //   }
+                      //
+                      //   double total = cartItems.fold(
+                      //       0.0, (sum, item) => sum + (item.afterDiscount * item.qty));
+                      //
+                      //   double discount = total * 0.1;
+                      //   double delivery = total > 499 ? 0 : 40;
+                      //   double finalAmount = total - discount + delivery;
+                      //
+                      //   final body = {
+                      //      "user_id": authController.userId.value,
+                      //
+                      //     "total_amount": total,
+                      //     "discount_amount": discount,
+                      //     "tax_amount": 0,
+                      //     "shipping_charge": delivery,
+                      //     "final_amount": finalAmount,
+                      //     "payment_method": "Online",
+                      //     "shipping_address": "Anna Nagar West",
+                      //     "city": "Chennai",
+                      //     "state": "Tamil Nadu",
+                      //     "pincode": "600040",
+                      //     "contact_number": authController.mobileNo.value,
+                      //     "Items": cartItems.map((item) => {
+                      //       "ProductId": item.id,
+                      //       "product_name": item.productName,
+                      //       "price": item.afterDiscount,
+                      //       "quantity": item.qty,
+                      //       "subtotal": item.afterDiscount * item.qty,
+                      //     }).toList(),
+                      //   };
+                      //
+                      //   final createdOrder = await orderController.placeOrder(body);
+                      //
+                      //   if (createdOrder != null) {
+                      //     Get.to(() => OrderSummary());
+                      //   }
+                      // },
                       onPressed: () {
-                        // Proceed to checkout summary
-                        Get.to(() => const OrderSummary());
+
+                        final cartItems = productController.cartItems;
+
+                        if (cartItems.isEmpty) {
+                          Get.snackbar("Cart", "Your cart is empty");
+                          return;
+                        }
+
+                        double total = cartItems.fold(
+                            0.0, (sum, item) => sum + (item.afterDiscount * item.qty));
+
+                        double discount = total * 0.1;
+                        double delivery = total > 499 ? 0 : 40;
+                        double finalAmount = total - discount + delivery;
+
+                        orderController.setTempOrder(
+                          total: total,
+                          discount: discount,
+                          tax: 0,
+                          shipping: delivery,
+                          finalAmount: finalAmount,
+                          items: cartItems.map((e) => OrderItemModel(
+                            productId: e.productId,   // must be STRING like "Product_ID6790"
+                            productName: e.productName,
+                            price: e.afterDiscount,
+                            quantity: e.qty,
+                            subtotal: e.afterDiscount * e.qty,
+                          )).toList(),
+                        );
+
+                        print("Temp order set successfully");
+
+                        Get.to(() => OrderSummary());
                       },
                       child: const Text(
                         "PLACE ORDER",
@@ -176,7 +265,7 @@ class _CartItemCard extends StatelessWidget {
     required this.product,
     required this.onRemove,
   });
-
+  @override
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -192,64 +281,143 @@ class _CartItemCard extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // IMAGE
-          ClipRRect(
-            borderRadius: const BorderRadius.horizontal(left: Radius.circular(14)),
-            child: Image.network(
-              product.fullImageUrl,
-              height: 100,
-              width: 90,
-              fit: BoxFit.cover,
-            ),
-          ),
 
-          const SizedBox(width: 12),
-
-          // DETAILS
+          /// 👇 CLICKABLE AREA (Image + Details)
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: () {
+                Get.to(() => ItemDetailPage(
+                  productId: product.productId.toString(),
+                ));
+              },
+              child: Row(
                 children: [
-                  Text(
-                    product.productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
+                  // IMAGE
+                  ClipRRect(
+                    borderRadius: const BorderRadius.horizontal(
+                        left: Radius.circular(14)),
+                    child: Image.network(
+                      product.fullImageUrl,
+                      height: 100,
+                      width: 90,
+                      fit: BoxFit.cover,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "₹${product.afterDiscount}",
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF6B46C1),
+
+                  const SizedBox(width: 12),
+
+                  // DETAILS
+                  Expanded(
+                    child: Padding(
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 12),
+                      child: Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.productName,
+                            maxLines: 2,
+                            overflow:
+                            TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight:
+                              FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            "₹${product.afterDiscount}",
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight:
+                              FontWeight.bold,
+                              color:
+                              Color(0xFF6B46C1),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              if (product.selectedSize != null)
+                                _badge(
+                                    "Size: ${product.selectedSize}"),
+                              const SizedBox(width: 8),
+                              _badge(
+                                  "QTY: ${product.qty}"),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      if (product.selectedSize != null) 
-                        _badge("Size: ${product.selectedSize}"),
-                      const SizedBox(width: 8),
-                      _badge("QTY: ${product.qty}"),
-                    ],
                   ),
                 ],
               ),
             ),
           ),
 
-          // REMOVE BUTTON
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.red),
-            onPressed: onRemove,
+          /// 👇 QUANTITY SECTION (NOT NAVIGATING)
+          Padding(
+            padding: const EdgeInsets.only(
+                right: 12, left: 8),
+            child: Column(
+              mainAxisAlignment:
+              MainAxisAlignment.center,
+              children: [
+                Row(
+                  children: [
+                    _qtyButton(Icons.remove, () {
+                      Get.find<
+                          CategoryProductController>()
+                          .decreaseQty(product);
+                    }),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8),
+                      child: Text(
+                        product.qty.toString(),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight:
+                          FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    _qtyButton(Icons.add, () {
+                      Get.find<
+                          CategoryProductController>()
+                          .increaseQty(product);
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "₹${(product.afterDiscount * product.qty).toStringAsFixed(0)}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+  Widget _qtyButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: 30,
+        width: 30,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+        ),
+        child: Icon(icon, size: 18),
       ),
     );
   }

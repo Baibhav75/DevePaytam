@@ -1,12 +1,12 @@
-import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controller/product_detail_controller.dart';
 import '../../controller/category_product_controller.dart';
 import '../../models/product_detail_model.dart';
 import '/controller/profile_controller.dart';
-import 'cart_page.dart';
 import 'OderSummary.dart';
+import 'cart_page.dart';
 
 class ItemDetailPage extends StatefulWidget {
   final String productId;
@@ -15,19 +15,19 @@ class ItemDetailPage extends StatefulWidget {
     super.key,
     required this.productId,
   });
-
   @override
   State<ItemDetailPage> createState() => _ItemDetailPageState();
 }
 
 class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProviderStateMixin {
   final ProductDetailController detailController = Get.put(ProductDetailController());
-  final CategoryProductController productController = Get.put(CategoryProductController());
+  final CategoryProductController productController = Get.find();
   final ProfileController profileController = Get.put(ProfileController()); // ✅ Inject ProfileController
   final PageController _pageController = PageController();
 
   int _quantity = 1;
   String? _selectedSize;
+
 
   @override
   void initState() {
@@ -66,6 +66,48 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
             icon: const Icon(Icons.share_outlined, color: Colors.black),
             onPressed: () {},
           ),
+          Obx(() {
+            final totalItems = productController.cartItems
+                .fold(0, (sum, item) => sum + item.qty);
+
+            return Stack(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.shopping_cart, color: Colors.black),
+                  onPressed: () {
+                    Get.to(() =>CartPage());
+                  },
+                ),
+
+                if (totalItems > 0)
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          totalItems.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          }),
           IconButton(
             icon: const Icon(Icons.favorite_border, color: Colors.black),
             onPressed: () {},
@@ -127,7 +169,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
                   const SizedBox(height: 24),
 
                   // ================= QUANTITY SELECTOR =================
-                  _buildQuantitySection(theme),
+                  //_buildQuantitySection(theme),
                 ],
               ),
             ),
@@ -467,38 +509,38 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
     );
   }
 
-  Widget _buildQuantitySection(ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text("Quantity", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              _qtyButton(Icons.remove, () {
-                if (_quantity > 1) {
-                  setState(() => _quantity--);
-                }
-              }),
-              Container(
-                width: 60,
-                alignment: Alignment.center,
-                child: Text(
-                  _quantity.toString(),
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ),
-              _qtyButton(Icons.add, () {
-                setState(() => _quantity++);
-              }),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildQuantitySection(ThemeData theme) {
+  //   return Padding(
+  //     padding: const EdgeInsets.symmetric(horizontal: 16),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         const Text("Quantity", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+  //         const SizedBox(height: 12),
+  //         Row(
+  //           children: [
+  //             _qtyButton(Icons.remove, () {
+  //               if (_quantity > 1) {
+  //                 setState(() => _quantity--);
+  //               }
+  //             }),
+  //             Container(
+  //               width: 60,
+  //               alignment: Alignment.center,
+  //               child: Text(
+  //                 _quantity.toString(),
+  //                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //               ),
+  //             ),
+  //             _qtyButton(Icons.add, () {
+  //               setState(() => _quantity++);
+  //             }),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _qtyButton(IconData icon, VoidCallback onTap) {
     return InkWell(
@@ -519,74 +561,117 @@ class _ItemDetailPageState extends State<ItemDetailPage> with SingleTickerProvid
       bottom: 0,
       left: 0,
       right: 0,
-      child: Container(
-        height: 100,
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: ElevatedButton(
-                onPressed: () {
-                  final userId = profileController.userId;
-                  if (userId == null) {
-                    Get.snackbar("Error", "Please login to add items to cart");
-                    return;
-                  }
+      child: Obx(() {
 
-                  productController.addToCartApi(
-                    product: product.toCategoryProduct(
-                      qty: _quantity,
-                      selectedSize: _selectedSize ?? "N/A",
+        final isInCart = productController
+            .isProductInCart(product.productId);
+
+        final cartQty = productController
+            .getProductQty(product.productId);
+
+        return Container(
+          height: 100,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+
+              /// ================= IF NOT IN CART =================
+              if (!isInCart)
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      final userId = profileController.userId;
+                      if (userId == null) {
+                        Get.snackbar("Error", "Please login");
+                        return;
+                      }
+
+                      productController.addToCartApi(
+                        product: product.toCategoryProduct(
+                          qty: 1,
+                          selectedSize: _selectedSize ?? "N/A",
+                        ),
+                        userId: userId,
+                        qty: 1,
+                        size: _selectedSize ?? "N/A",
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
                     ),
-                    userId: userId,
-                    qty: _quantity,
-                    size: _selectedSize ?? "N/A",
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text("ADD TO CART", style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 1,
-              child: ElevatedButton(
-                onPressed: () => Get.to(() => OrderSummary(
-                  buyNowProduct: product.toCategoryProduct(
-                    qty: _quantity,
-                    selectedSize: _selectedSize ?? "N/A",
+                    child: const Text(
+                      "ADD TO CART",
+                      style: TextStyle(fontWeight: FontWeight.bold,color: Colors.white),
+                    ),
                   ),
-                )),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: const Text("BUY NOW", style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ),
-          ],
-        ),
-      ),
+
+              /// ================= IF ALREADY IN CART =================
+              if (isInCart)
+                Expanded(
+                  child: Container(
+                    height: 55,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.primaryColor),
+                    ),
+                    child: Row(
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceEvenly,
+                      children: [
+
+                        IconButton(
+                          onPressed: () {
+                            productController
+                                .decreaseQty(
+                                productController.cartItems
+                                    .firstWhere((e) =>
+                                e.productId ==
+                                    product.productId));
+                          },
+                          icon: const Icon(Icons.remove),
+                        ),
+
+                        Text(
+                          cartQty.toString(),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        IconButton(
+                          onPressed: () {
+                            productController
+                                .increaseQty(
+                                productController.cartItems
+                                    .firstWhere((e) =>
+                                e.productId ==
+                                    product.productId));
+                          },
+                          icon: const Icon(Icons.add),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }

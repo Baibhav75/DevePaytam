@@ -34,7 +34,17 @@ class ApiConstants {
 
   static const String bannerList = "/api/banner/list";
 
+// ✅ GET USER ADDRESS
+//   static const String getUserAddress = "/api/user/address";
 
+
+// ✅ ADDRESS APIs
+  static const String getAddress = "/api/shipping/get-by-mobile";
+  static const String addAddress = "/api/shipping/add-address";
+
+  static const String createOrder = "/api/orders/create";
+  static const String getOrderByNumber =
+      "/api/orders/get-by-order";
 
 
   // ================= COMMON HEADERS =================

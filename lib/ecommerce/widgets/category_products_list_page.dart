@@ -53,7 +53,6 @@ class _CitizenCardListState extends State<CitizenCardList> {
             ),
           );
         }
-
         return GridView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: controller.products.length,

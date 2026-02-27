@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:get/get.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:http/http.dart' as http;
 
 import '../models/add_to_cart_model.dart';
 import '../models/home_category_model.dart';
 import '../models/product_detail_model.dart';
+import '../models/add_address_model.dart';
 import '../models/sub_category_model.dart';
 import 'api_constants.dart';
 import '/models/category_product_model.dart';
@@ -122,12 +126,14 @@ class ApiService extends GetxService {
 
   // ================= GET PROFILE =================
   Future<Map<String, dynamic>?> getUserProfile({
-    required String userId,
+    required String mobile,
   }) async {
     try {
-      final dio.Response response = await dioClient.get(
-        ApiConstants.getUserProfile,
-        queryParameters: {"UserId": userId},
+      final response = await dioClient.get(
+        ApiConstants.getUserProfileByMobile,
+        queryParameters: {
+          "MobileNumber": mobile,
+        },
       );
 
       if (response.statusCode == 200) {
@@ -180,23 +186,44 @@ class ApiService extends GetxService {
     return null;
   }
 
-  // ================= SUB CATEGORIES =================
+  // // ================= SUB CATEGORIES =================
+  // Future<SubCategoryResponse?> getSubCategoriesByCategory({
+  //   required int categoryId,
+  // }) async {
+  //   try {
+  //     final dio.Response response = await dioClient.get(
+  //       ApiConstants.getSubCategoriesByCategory,
+  //       queryParameters: {
+  //         "categoryId": categoryId,
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       return SubCategoryResponse.fromJson(response.data);
+  //     }
+  //   } catch (e) {
+  //     Get.log("❌ SubCategory Error: $e");
+  //   }
+  //   return null;
+  // }
+
   Future<SubCategoryResponse?> getSubCategoriesByCategory({
     required int categoryId,
   }) async {
     try {
-      final dio.Response response = await dioClient.get(
+      final response = await dioClient.get(
         ApiConstants.getSubCategoriesByCategory,
         queryParameters: {
           "categoryId": categoryId,
         },
       );
 
-      if (response.statusCode == 200) {
-        return SubCategoryResponse.fromJson(response.data);
-      }
+      return SubCategoryResponse.fromJson(response.data);
+
+    } on dio.DioException catch (e) {
+      Get.log("❌ Dio Error: ${e.response?.data}");
     } catch (e) {
-      Get.log("❌ SubCategory Error: $e");
+      Get.log("❌ Unexpected Error: $e");
     }
     return null;
   }
@@ -277,5 +304,26 @@ class ApiService extends GetxService {
     }
     return null;
   }
+
+  // Future<SaveAddressResponse?> getUserAddress({
+  //   required String mobile,
+  // }) async {
+  //   try {
+  //     final response = await dioClient.get(
+  //       ApiConstants.getAddress,
+  //       queryParameters: {
+  //         "mobile": mobile,
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       return SaveAddressResponse.fromJson(response.data);
+  //     }
+  //   } catch (e) {
+  //     Get.log("❌ Get Address Error: $e");
+  //   }
+  //   return null;
+  // }
+
 }
 

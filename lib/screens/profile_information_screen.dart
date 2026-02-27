@@ -1,14 +1,37 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '/controller/profile_controller.dart';
 
-class UserProfileScreen extends StatelessWidget {
+class UserProfileScreen extends StatefulWidget {
   UserProfileScreen({super.key});
 
+  @override
+  State<UserProfileScreen> createState() => _UserProfileScreenState();
+}
+
+class _UserProfileScreenState extends State<UserProfileScreen> {
   // ✅ SAFE INJECTION
   final ProfileController controller =
   Get.put(ProfileController());
+
+  File? _profileImage;
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    final XFile? pickedFile =
+    await _picker.pickImage(source: source, imageQuality: 80);
+
+    if (pickedFile != null) {
+      setState(() {
+        _profileImage = File(pickedFile.path);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +74,11 @@ class UserProfileScreen extends StatelessWidget {
                     // ===== PROFILE IMAGE =====
                     Stack(
                       children: [
-                        const CircleAvatar(
+                        CircleAvatar(
                           radius: 52,
-                          backgroundImage:
-                          AssetImage("assets/logo.png"),
+                          backgroundImage: _profileImage != null
+                              ?  FileImage(_profileImage!)
+                              :  const AssetImage("assets/logo.png") as ImageProvider,
                           backgroundColor: Colors.white,
                         ),
                         Positioned(
@@ -145,26 +169,36 @@ class UserProfileScreen extends StatelessWidget {
   }
 
   // ================= IMAGE OPTIONS =================
-  static void _showImageOptions(BuildContext context) {
+  void _showImageOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius:
-        BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) => Column(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          SizedBox(height: 12),
+        children: [
+          const SizedBox(height: 12),
+
           ListTile(
-            leading: Icon(Icons.camera_alt),
-            title: Text("Take Photo"),
+            leading: const Icon(Icons.camera_alt),
+            title: const Text("Take Photo"),
+            onTap: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.camera);
+            },
           ),
+
           ListTile(
-            leading: Icon(Icons.photo_library),
-            title: Text("Choose from Gallery"),
+            leading: const Icon(Icons.photo_library),
+            title: const Text("Choose from Gallery"),
+            onTap: () {
+              Navigator.pop(context);
+              _pickImage(ImageSource.gallery);
+            },
           ),
-          SizedBox(height: 12),
+
+          const SizedBox(height: 12),
         ],
       ),
     );

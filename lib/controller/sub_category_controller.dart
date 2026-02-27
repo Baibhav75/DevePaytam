@@ -9,17 +9,37 @@ class SubCategoryController extends GetxController {
   var subCategories = <SubCategory>[].obs;
   var selectedSubCategoryId = 0.obs; // 0 = All
 
+  // Future<void> fetchSubCategories(int categoryId) async {
+  //   isLoading.value = true;
+  //
+  //   final response =
+  //   await _apiService.getSubCategoriesByCategory(categoryId: categoryId);
+  //
+  //   if (response != null && response.status) {
+  //     subCategories.assignAll(response.data);
+  //   }
+  //
+  //   isLoading.value = false;
+  // }
+
   Future<void> fetchSubCategories(int categoryId) async {
-    isLoading.value = true;
+    try {
+      isLoading.value = true;
 
-    final response =
-    await _apiService.getSubCategoriesByCategory(categoryId: categoryId);
+      final response =
+      await _apiService.getSubCategoriesByCategory(categoryId: categoryId);
 
-    if (response != null && response.status) {
-      subCategories.assignAll(response.data);
+      if (response != null && response.status) {
+        subCategories.assignAll(response.data);
+      } else {
+        subCategories.clear();
+        Get.snackbar("Error", response?.message ?? "Something went wrong");
+      }
+    } catch (e) {
+      Get.log("Controller Error: $e");
+    } finally {
+      isLoading.value = false;
     }
-
-    isLoading.value = false;
   }
 
   void selectSubCategory(int id) {

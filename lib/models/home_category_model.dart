@@ -23,7 +23,7 @@ class HomeCategoryResponse {
 class HomeCategory {
   final int categoryId;
   final String categoryName;
-  final String categoryImage;
+  final String? categoryImage;
 
   HomeCategory({
     required this.categoryId,
@@ -33,22 +33,35 @@ class HomeCategory {
 
   factory HomeCategory.fromJson(Map<String, dynamic> json) {
     return HomeCategory(
-      categoryId: json['CategoryId'],
-      categoryName: json['CategoryName'],
-      categoryImage: json['CategoryImage'],
+      categoryId: json['CategoryId'] ?? 0,
+      categoryName: json['CategoryName'] ?? '',
+      categoryImage: json['CategoryImage'], // can be null
     );
   }
 
+
+
+//   String get fullImageUrl {
+//     if (categoryImage.isEmpty) return '';
+//
+//     // remove "~"
+//     String path = categoryImage.replaceAll('~', '');
+//
+//     // remove wrong folder
+//     path = path.replaceAll('/Uploads/Category/', '');
+//
+//     // ensure correct base
+//     return 'https://dewa.co.in$path';
+//   }
+// }
   String get fullImageUrl {
-    if (categoryImage.isEmpty) return '';
+    if (categoryImage == null || categoryImage!.isEmpty) {
+      return '';
+    }
 
     // remove "~"
-    String path = categoryImage.replaceAll('~', '');
+    String path = categoryImage!.replaceFirst('~', '');
 
-    // remove wrong folder
-    path = path.replaceAll('/Uploads/Category/', '');
-
-    // ensure correct base
     return 'https://dewa.co.in$path';
   }
 }

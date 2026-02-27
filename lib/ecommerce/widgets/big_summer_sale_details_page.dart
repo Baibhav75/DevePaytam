@@ -47,7 +47,7 @@ class _BigSummerSaleDetailsPageState extends State<BigSummerSaleDetailsPage> {
           IconButton(icon: const Icon(Icons.share_outlined), onPressed: () {}),
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () => Get.to(() => const CartPage()),
+            onPressed: () => Get.to(() =>  CartPage()),
           ),
         ],
       ),
@@ -314,7 +314,7 @@ class _BigSummerSaleDetailsPageState extends State<BigSummerSaleDetailsPage> {
                           backgroundColor: Colors.black87,
                           colorText: Colors.white,
                         );
-                        Get.to(() => const CartPage());
+                        Get.to(() =>  CartPage());
                       },
                       child: Container(
                         alignment: Alignment.center,
@@ -329,7 +329,7 @@ class _BigSummerSaleDetailsPageState extends State<BigSummerSaleDetailsPage> {
                     child: InkWell(
                       onTap: () {
                         shopController.addToCart(widget.product);
-                        Get.to(() => const CartPage());
+                        Get.to(() =>  CartPage());
                       },
                       child: Container(
                         alignment: Alignment.center,

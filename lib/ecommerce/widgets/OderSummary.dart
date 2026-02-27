@@ -1,16 +1,31 @@
+import 'package:Dewa/ecommerce/widgets/payments_page.dart';
+import 'package:Dewa/screens/payment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controller/add_address_controller.dart';
 import '../../controller/category_product_controller.dart';
+import '../../controller/order_controller.dart';
 import '../../models/category_product_model.dart';
+import '../../screens/save_addesses_screen.dart';
 
 class OrderSummary extends StatelessWidget {
   final CategoryProduct? buyNowProduct;
+  final CategoryProductController productController = Get.find<CategoryProductController>();
+  final OrderController orderController =
+  Get.isRegistered<OrderController>()
+      ? Get.find<OrderController>()
+      : Get.put(OrderController());
+  final AddressController addressController =
+  Get.isRegistered<AddressController>()
+      ? Get.find<AddressController>()
+      : Get.put(AddressController());
+  OrderSummary({super.key, this.buyNowProduct});
 
-  const OrderSummary({super.key, this.buyNowProduct});
+
 
   @override
   Widget build(BuildContext context) {
-    final CategoryProductController productController = Get.find<CategoryProductController>();
+
 
     return Scaffold(
       backgroundColor: const Color(0xFFF1F3F6),
@@ -19,7 +34,7 @@ class OrderSummary extends StatelessWidget {
           "Order Summary",
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
-        backgroundColor: const Color(0xFF2874F0),
+        backgroundColor: const Color(0xFF6200EA),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -31,16 +46,16 @@ class OrderSummary extends StatelessWidget {
               children: [
                 _buildAddressSection(),
                 const SizedBox(height: 8),
-                _buildItemsSection(productController),
+                _buildItemsSection(),
                 const SizedBox(height: 8),
-                _buildPriceDetailsSection(productController),
+                _buildPriceDetailsSection(),
                 const SizedBox(height: 16),
               ],
             ),
           ),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(productController),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
@@ -95,56 +110,160 @@ class OrderSummary extends StatelessWidget {
   // ================= ADDRESS =================
 
   Widget _buildAddressSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.white,
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Deliver to:",
-            style: TextStyle(fontWeight: FontWeight.bold),
+
+
+    return Obx(() {
+
+      final address = addressController.selectedAddress.value;
+
+      if (address == null) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          color: Colors.white,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("No Address Selected"),
+              TextButton(
+                onPressed: () {
+                  Get.to(() => SaveAddressesScreen(
+                      mobile: ""));
+                },
+                child: const Text("Add Address"),
+              )
+            ],
           ),
-          SizedBox(height: 6),
-          Text("Baibhav Kumar - 800001",
-              style: TextStyle(fontWeight: FontWeight.w600)),
-          SizedBox(height: 4),
-          Text(
-            "Flat No. 101, Dream Residency, Boring Road, Patna, Bihar",
-            style: TextStyle(color: Colors.black54, fontSize: 13),
-          ),
-        ],
-      ),
-    );
+        );
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(16),
+        color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            // 🔹 TOP ROW (Title + Change)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Deliver to:",
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold),
+                ),
+                InkWell(
+                  onTap: () {
+                    Get.to(() => SaveAddressesScreen(
+                        mobile: address.mobileNo));
+                  },
+                  child: const Text(
+                    "Change",
+                    style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.w600),
+                  ),
+                )
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              "${address.name} - ${address.pinCode}",
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600),
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+              "${address.address}, ${address.city}, ${address.state}",
+              style: const TextStyle(
+                  color: Colors.black54,
+                  fontSize: 13),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
   // ================= ITEMS =================
 
-  Widget _buildItemsSection(CategoryProductController productController) {
-    if (buyNowProduct != null) {
-      return _OrderItemTile(product: buyNowProduct!);
-    }
 
+  Widget _buildItemsSection() {
     return Obx(() {
-      final items = productController.cartItems;
-      if (items.isEmpty) return const SizedBox();
+
+      final order = orderController.orderData.value;
+
+      if (order == null) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
       return Column(
-        children: items.map((product) => _OrderItemTile(product: product)).toList(),
+        children: order.items.map((item) {
+          return ListTile(
+            title: Text(item.productName),
+            subtitle: Text("Qty: ${item.quantity}"),
+            trailing: Text("₹${item.subtotal}"),
+          );
+        }).toList(),
       );
     });
   }
 
   // ================= PRICE DETAILS =================
-
-  Widget _buildPriceDetailsSection(CategoryProductController productController) {
-    if (buyNowProduct != null) {
-      return _buildPriceDetails(buyNowProduct!.afterDiscount, 1);
-    }
-
+  Widget _buildPriceDetailsSection() {
     return Obx(() {
-      final total = productController.cartItems.fold(0.0, (sum, item) => sum + item.afterDiscount);
-      final count = productController.cartItems.length;
-      return _buildPriceDetails(total, count);
+
+      final order = orderController.orderData.value;
+
+      if (order == null) {
+        return const SizedBox();
+      }
+
+      return Container(
+        color: Colors.white,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Price Details",
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey),
+            ),
+            const Divider(),
+
+            _priceRow("Total Amount",
+                "₹${order.totalAmount.toStringAsFixed(0)}"),
+
+            _priceRow("Discount",
+                "- ₹${order.discountAmount.toStringAsFixed(0)}",
+                color: Colors.green),
+
+            _priceRow("Tax",
+                "₹${order.taxAmount.toStringAsFixed(0)}"),
+
+            _priceRow("Shipping Charges",
+                order.shippingCharge == 0
+                    ? "FREE"
+                    : "₹${order.shippingCharge.toStringAsFixed(0)}",
+                color: order.shippingCharge == 0
+                    ? Colors.green
+                    : Colors.black),
+
+            const Divider(),
+
+            _priceRow("Final Amount",
+                "₹${order.finalAmount.toStringAsFixed(0)}",
+                isBold: true),
+          ],
+        ),
+      );
     });
   }
 
@@ -201,18 +320,14 @@ class OrderSummary extends StatelessWidget {
   }
 
   // ================= BOTTOM BAR =================
-
-  Widget _buildBottomBar(CategoryProductController productController) {
+  Widget _buildBottomBar() {
     return Obx(() {
-      // Accessing cartCount here ensures Obx always has an observable to watch,
-      // preventing "improper use of GetX" error even when buyNowProduct is used.
-      final _ = productController.cartItems.length;
 
-      double total = buyNowProduct != null ? buyNowProduct!.afterDiscount : productController.cartItems.fold(0.0, (sum, item) => sum + item.afterDiscount);
+      final order = orderController.orderData.value;
 
-      double discount = total * 0.1;
-      double delivery = total > 499 ? 0 : 40;
-      double finalPrice = total - discount + delivery;
+      if (order == null) {
+        return const SizedBox();
+      }
 
       return Container(
         height: 70,
@@ -220,33 +335,43 @@ class OrderSummary extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 5, offset: const Offset(0, -2))
+            BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 5,
+                offset: const Offset(0, -2))
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "₹${finalPrice.toStringAsFixed(0)}",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              "₹${order.finalAmount.toStringAsFixed(0)}",
+              style: const TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.bold),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFB641B),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 40, vertical: 14),
               ),
               onPressed: () {
-                Get.snackbar(
-                  "Payment",
-                  "Redirecting to Secure Payment Gateway...",
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.green,
-                  colorText: Colors.white,
+                // Get.snackbar(
+                //   "Payment",
+                //   "Redirecting to Secure Payment Gateway...",
+                //   snackPosition: SnackPosition.BOTTOM,
+                //   backgroundColor: Colors.green,
+                //   colorText: Colors.white,
+                // );
+                Get.to(
+                  PaymentPage(finalAmount: order.finalAmount),
                 );
               },
               child: const Text(
                 "CONTINUE",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold),
               ),
             ),
           ],

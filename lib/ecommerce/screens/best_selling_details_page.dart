@@ -51,7 +51,7 @@ class _BestSellingDetailsPageState extends State<BestSellingDetailsPage> {
           ),
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),
-            onPressed: () => Get.to(() => const CartPage()),
+            onPressed: () => Get.to(() =>  CartPage()),
           ),
         ],
       ),
@@ -292,7 +292,7 @@ class _BestSellingDetailsPageState extends State<BestSellingDetailsPage> {
                           backgroundColor: Colors.black87,
                           colorText: Colors.white,
                         );
-                        Get.to(() => const CartPage());
+                        Get.to(() => CartPage());
                       },
                       child: Container(
                         alignment: Alignment.center,

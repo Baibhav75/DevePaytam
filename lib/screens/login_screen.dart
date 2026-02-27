@@ -9,8 +9,7 @@ class LoginScreen extends StatelessWidget {
   LoginScreen({super.key});
 
   // ✅ GetX Controller
-  final AuthController authController = Get.put(AuthController());
-
+  final AuthController authController = Get.find<AuthController>();
   final TextEditingController _phoneController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:get/get.dart';
+import '../controller/Auth_Controller.dart';
 import '../theme/app_colors.dart';
 import 'home_screen.dart';
 import '/api.dart/api_service.dart';
@@ -25,8 +26,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   List.generate(4, (_) => TextEditingController());
   final List<FocusNode> _focusNodes =
   List.generate(4, (_) => FocusNode());
-  final ApiService _apiService = ApiService();
-
+  // final ApiService _apiService = ApiService();
+  final ApiService _apiService = Get.find<ApiService>();
   bool _isLoading = false;
 
   @override
@@ -44,12 +45,23 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     await prefs.setString('mobile', data['MobileNumber'] ?? '');
     await prefs.setString('email', data['Email'] ?? '');
 
-    print("💾 USER SAVED");
-    print("ID: ${data['UserId']}");
-    print("NAME: ${data['FullName']}");
-    print("MOBILE: ${data['MobileNumber']}");
-    print("EMAIL: ${data['Email']}");
+  //
+  // Future<void> _saveUserData(Map<String, dynamic> data) async {
+  //   final authController = Get.find<AuthController>();
+  //
+  //   authController.userId.value = data['UserId'];
+  //   authController.userName.value = data['FullName'] ?? '';
+  //   authController.mobileNo.value = data['MobileNumber'] ?? '';
+  //
+  //   authController.box.write("user_id", data['UserId']);
+  //   authController.box.write("name", data['FullName'] ?? '');
+  //   authController.box.write("mobile", data['MobileNumber'] ?? '');
+  //
+  //   authController.update(); // 🔥 FORCE UPDATE
+  //
+  //   print("🔥 USER ID AFTER SAVE => ${authController.userId.value}");
   }
+
 
 
   Future<void> _handleVerify() async {
@@ -86,10 +98,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         );
 
         if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-                (route) => false,
-          );
+         Get.offAll(() => const HomeScreen());
         }
       }
       else {

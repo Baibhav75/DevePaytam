@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../api.dart/api_service.dart';
 import '../models/category_product_model.dart';
@@ -66,6 +69,8 @@ class CategoryProductController extends GetxController {
           "Success",
           response.message,
           snackPosition: SnackPosition.BOTTOM,
+          colorText: Colors.white,
+          backgroundColor: Colors.green,
         );
 
       } else {
@@ -73,6 +78,8 @@ class CategoryProductController extends GetxController {
           "Error",
           response?.message ?? "Failed to add cart",
           snackPosition: SnackPosition.BOTTOM,
+          colorText: Colors.white,
+          backgroundColor: Colors.red,
         );
       }
 
@@ -82,6 +89,8 @@ class CategoryProductController extends GetxController {
         "Error",
         "Something went wrong",
         snackPosition: SnackPosition.BOTTOM,
+        colorText: Colors.white,
+        backgroundColor: Colors.red,
       );
       Get.log("❌ Add To Cart Error: $e");
     }
@@ -172,4 +181,37 @@ class CategoryProductController extends GetxController {
     products.clear();
     errorMessage.value = '';
   }
+  // ================= UPDATE QTY =================
+  Future<void> increaseQty(CategoryProduct product) async {
+    product.qty += 1;
+    cartItems.refresh();   // UI update
+
+    // 🔥 Agar API me qty update karna ho to yaha call karo
+    // await updateCartQtyApi(product);
+  }
+
+  Future<void> decreaseQty(CategoryProduct product) async {
+    if (product.qty > 1) {
+      product.qty -= 1;
+    } else {
+      // qty 1 se kam ho to remove
+      removeFromCart(product);
+      return;
+    }
+
+    cartItems.refresh();
+
+    // 🔥 API call yaha bhi kar sakte ho
+  }
+
+  bool isProductInCart(String productId) {
+    return cartItems.any((item) => item.productId == productId);
+  }
+
+  int getProductQty(String productId) {
+    final item = cartItems.firstWhereOrNull(
+            (e) => e.productId == productId);
+    return item?.qty ?? 0;
+  }
+
 }

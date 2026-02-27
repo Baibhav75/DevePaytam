@@ -13,12 +13,14 @@ dependencies:
   cupertino_icons: ^1.0.8
   http: ^1.1.0
   mobile_scanner: ^7.1.4
-  dio: ^5.0.0
+  dio: ^5.9.1
   shared_preferences: ^2.1.1
   get: ^4.6.6   # ✅ ADD THIS LINE FOR GETX
   flutter_native_splash: ^2.4.7
   geolocator: ^14.0.2
   geocoding: ^4.0.0
+  image_picker: 1.0.4
+  get_storage: ^2.1.1
 
 dev_dependencies:
   flutter_test:

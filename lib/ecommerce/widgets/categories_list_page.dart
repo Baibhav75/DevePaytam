@@ -4,7 +4,6 @@ import '../../controller/HomeCategory_controller.dart';
 import '../../controller/sub_category_controller.dart';
 
 import '../../models/category_product_model.dart';
-import '../models/product.dart';
 import 'badge_icon.dart';
 import 'cart_page.dart';
 import 'item_detail_page.dart';
@@ -79,7 +78,7 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const CartPage()),
+                  MaterialPageRoute(builder: (_) => CartPage()),
                 );
               },
             ),
@@ -125,7 +124,6 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
               ),
             ),
           ),
-
           // ================= HORIZONTAL CATEGORY FILTER =================
           SizedBox(
             height: 44,
@@ -222,18 +220,30 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
                     return const Center(child: Text("No products found for this sub-category"));
                   }
 
-                  return GridView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: filteredProducts.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 0.75,
-                    ),
-                    itemBuilder: (context, index) {
-                      final product = filteredProducts[index];
-                      return _ProductCard(product: product);
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final screenWidth = constraints.maxWidth;
+
+                      // 2 column ke hisaab se item width calculate
+                      final itemWidth = (screenWidth - 16 * 2 - 12) / 2;
+
+                      // Approximate item height (adjust if needed)
+                      final itemHeight = itemWidth * 1.45;
+
+                      return GridView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: filteredProducts.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 16,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: itemWidth / itemHeight,
+                        ),
+                        itemBuilder: (context, index) {
+                          final product = filteredProducts[index];
+                          return _ProductCard(product: product);
+                        },
+                      );
                     },
                   );
                 }),
@@ -246,7 +256,6 @@ class _CategoriesListPageState extends State<CategoriesListPage> {
     );
   }
 }
-
 class _ProductCard extends StatelessWidget {
   final CategoryProduct product;
 
@@ -255,16 +264,13 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final CategoryProductController controller =
-    Get.find<CategoryProductController>();
+    final controller = Get.find<CategoryProductController>();
 
     return GestureDetector(
       onTap: () {
         Get.to(() => ItemDetailPage(
           productId: product.productId,
         ));
-
-
       },
       child: Container(
         decoration: BoxDecoration(
@@ -278,96 +284,108 @@ class _ProductCard extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // IMAGE
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-              child: Image.network(
-                product.fullImageUrl,
-                height: 170,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) =>
-                const Icon(Icons.image_not_supported),
+            SizedBox(
+              height: 160, // 👈 controlled image height
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(18),
+                ),
+                child: Container(
+                  width: double.infinity,
+                  color: Colors.grey.shade50,
+                  padding: const EdgeInsets.all(10),
+                  child: Image.network(
+                    product.fullImageUrl,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.center,
+                    errorBuilder: (_, __, ___) =>
+                    const Icon(Icons.image_not_supported),
+                  ),
+                ),
               ),
             ),
 
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            /// CONTENT
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                  // NAME
-                  Text(
-                    product.productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  // PRICE
-                  Text(
-                    "₹${product.afterDiscount}",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: theme.primaryColor,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Row(
-                    children: [
-                      Text(
-                        "₹${product.mrp}",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                          decoration: TextDecoration.lineThrough,
-                        ),
+                    /// NAME
+                    Text(
+                      product.productName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        "-${product.discount.toStringAsFixed(0)}%",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.green,
-                        ),
-                      ),
-                      const Spacer(),
+                    ),
 
-                      // ADD TO CART BUTTON
-                      GestureDetector(
-                        onTap: () {
-                          controller.addToCart(product);
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: theme.primaryColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.add,
-                            color: Colors.white,
-                            size: 18,
+                    const SizedBox(height: 6),
+
+                    /// PRICE
+                    Text(
+                      "₹${product.afterDiscount}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: theme.primaryColor,
+                      ),
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            "₹${product.mrp}",
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              decoration: TextDecoration.lineThrough,
+                            ),
                           ),
                         ),
-                      )
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 6),
+                        Text(
+                          "-${product.discount.toStringAsFixed(0)}%",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                          ),
+                        ),
+                        const Spacer(),
+
+                        /// ADD BUTTON
+                        InkWell(
+                          onTap: () {
+                            controller.addToCart(product);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: theme.primaryColor,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.add,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

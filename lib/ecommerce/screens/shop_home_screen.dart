@@ -40,6 +40,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
+        if (!mounted) return;
         setState(() => _currentAddress = 'Location service disabled');
         return;
       }
@@ -48,12 +49,14 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
+          if (!mounted) return;
           setState(() => _currentAddress = 'Permission denied');
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
+        if (!mounted) return;
         setState(() => _currentAddress = 'Enable permission in settings');
         return;
       }
@@ -68,11 +71,16 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
       );
 
       final place = placemarks.first;
+
+      if (!mounted) return;   // 🔥 MOST IMPORTANT
+
       setState(() {
         _currentAddress =
         '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}';
       });
+
     } catch (e) {
+      if (!mounted) return;
       setState(() => _currentAddress = 'Select Location');
     }
   }
@@ -148,10 +156,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SearchScreen()),
-              );
+             Get.to(SearchScreen());
             },
           ),
           Obx(() => BadgeIcon(
