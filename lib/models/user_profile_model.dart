@@ -39,13 +39,45 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      userId: json['UserId'],
+      userId: json['UserId'] ?? 0,
       fullName: json['FullName'] ?? '',
       mobileNumber: json['MobileNumber'] ?? '',
       email: json['Email'] ?? '',
       isMobileVerified: json['IsMobileVerified'] ?? false,
       createdAt: json['CreatedAt'] ?? '',
       updatedAt: json['UpdatedAt'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'UserId': userId,
+      'FullName': fullName,
+      'MobileNumber': mobileNumber,
+      'Email': email,
+      'IsMobileVerified': isMobileVerified,
+      'CreatedAt': createdAt,
+      'UpdatedAt': updatedAt,
+    };
+  }
+
+  UserProfile copyWith({
+    int? userId,
+    String? fullName,
+    String? mobileNumber,
+    String? email,
+    bool? isMobileVerified,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return UserProfile(
+      userId: userId ?? this.userId,
+      fullName: fullName ?? this.fullName,
+      mobileNumber: mobileNumber ?? this.mobileNumber,
+      email: email ?? this.email,
+      isMobileVerified: isMobileVerified ?? this.isMobileVerified,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

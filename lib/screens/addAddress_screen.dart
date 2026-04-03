@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/add_address_controller.dart';
+import '../ecommerce/screens/locationpage.dart';
 
 class AddAddressScreen extends StatefulWidget {
   final String mobile;
@@ -42,6 +43,29 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               _buildField("Full Name", nameCtrl, Icons.person),
               const SizedBox(height: 16),
 
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Address Details", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  TextButton.icon(
+                    onPressed: () async {
+                      final result = await Get.to(() => const SelectDeliveryLocationScreen());
+                      if (result != null && result is Map) {
+                        addressCtrl.text = result["address"] ?? "";
+                        cityCtrl.text = result["city"] ?? "";
+                        stateCtrl.text = result["state"] ?? "";
+                        pinCtrl.text = result["pinCode"] ?? "";
+                      }
+                    },
+                    icon: const Icon(Icons.my_location, size: 18),
+                    label: const Text("Choose on Map"),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF0288D1),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
               _buildField("Complete Address", addressCtrl,
                   Icons.location_on_outlined,
                   maxLines: 3),
@@ -69,7 +93,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
                     if (_formKey.currentState!.validate()) {
 
-                      await controller.addAddress(
+                      bool success = await controller.addAddress(
                         name: nameCtrl.text.trim(),
                         mobile: widget.mobile,
                         addressType: "Home",
@@ -79,7 +103,11 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                         pinCode: pinCtrl.text.trim(),
                       );
 
-                      Get.back();
+                      if (success) {
+                        Get.snackbar("Success", "Address added successfully", 
+                          backgroundColor: Colors.green, colorText: Colors.white);
+                        Get.back();
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(

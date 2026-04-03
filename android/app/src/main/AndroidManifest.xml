@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- 🌐 Internet (needed for geocoding) -->
+    <!-- 🌐 Internet -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
+
 
     <!-- 📍 Location Permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
-    <!-- ✅ REQUIRED for Android 10+ -->
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
 
+
+    <!-- 📷 Camera -->
     <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- 🖼️ Media -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
 
     <application
         android:label="DEWA"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:requestLegacyExternalStorage="true">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCNtT0G9NSMKaCLS-JNlsLej6Nu1EZibIc"/>
 
         <activity
             android:name=".MainActivity"
@@ -30,7 +42,7 @@
             android:hardwareAccelerated="true"
             android:windowSoftInputMode="adjustResize">
 
-            <!-- Flutter normal theme -->
+            <!-- Flutter theme -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/NormalTheme" />
@@ -46,12 +58,9 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-        android:requestLegacyExternalStorage="true"
-
-
     </application>
 
-    <!-- Required for Android 11+ text processing -->
+    <!-- Android 11+ -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT" />

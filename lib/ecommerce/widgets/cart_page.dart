@@ -20,7 +20,6 @@ class CartPage extends StatelessWidget {
   Widget build(BuildContext context) {
 
 
-
     return Scaffold(
       backgroundColor: const Color(0xFFF6F6F6),
 
@@ -124,54 +123,7 @@ class CartPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      // onPressed: () async {
-                      //
-                      //   final orderController = Get.put(OrderController());
-                      //   final productController = Get.find<CategoryProductController>();
-                      //
-                      //   final cartItems = productController.cartItems;
-                      //
-                      //   if (cartItems.isEmpty) {
-                      //     Get.snackbar("Cart", "Your cart is empty");
-                      //     return;
-                      //   }
-                      //
-                      //   double total = cartItems.fold(
-                      //       0.0, (sum, item) => sum + (item.afterDiscount * item.qty));
-                      //
-                      //   double discount = total * 0.1;
-                      //   double delivery = total > 499 ? 0 : 40;
-                      //   double finalAmount = total - discount + delivery;
-                      //
-                      //   final body = {
-                      //      "user_id": authController.userId.value,
-                      //
-                      //     "total_amount": total,
-                      //     "discount_amount": discount,
-                      //     "tax_amount": 0,
-                      //     "shipping_charge": delivery,
-                      //     "final_amount": finalAmount,
-                      //     "payment_method": "Online",
-                      //     "shipping_address": "Anna Nagar West",
-                      //     "city": "Chennai",
-                      //     "state": "Tamil Nadu",
-                      //     "pincode": "600040",
-                      //     "contact_number": authController.mobileNo.value,
-                      //     "Items": cartItems.map((item) => {
-                      //       "ProductId": item.id,
-                      //       "product_name": item.productName,
-                      //       "price": item.afterDiscount,
-                      //       "quantity": item.qty,
-                      //       "subtotal": item.afterDiscount * item.qty,
-                      //     }).toList(),
-                      //   };
-                      //
-                      //   final createdOrder = await orderController.placeOrder(body);
-                      //
-                      //   if (createdOrder != null) {
-                      //     Get.to(() => OrderSummary());
-                      //   }
-                      // },
+
                       onPressed: () {
 
                         final cartItems = productController.cartItems;
@@ -195,11 +147,12 @@ class CartPage extends StatelessWidget {
                           shipping: delivery,
                           finalAmount: finalAmount,
                           items: cartItems.map((e) => OrderItemModel(
-                            productId: e.productId,   // must be STRING like "Product_ID6790"
+                            productId: e.productId,
                             productName: e.productName,
                             price: e.afterDiscount,
                             quantity: e.qty,
                             subtotal: e.afterDiscount * e.qty,
+                            imageUrl: e.fullImageUrl, // ✅ ADD THIS
                           )).toList(),
                         );
 

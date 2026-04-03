@@ -5,21 +5,110 @@ import '../../controller/add_address_controller.dart';
 import '../../controller/order_controller.dart';
 import '../../controller/profile_controller.dart';
 import '../../theme/app_colors.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 // <-- your file
 
 class PaymentPage extends StatefulWidget {
-  final double finalAmount;
 
-  const PaymentPage({Key? key, required this.finalAmount}) : super(key: key);
+  final double amount;
+  const PaymentPage({Key? key, required this.amount}) : super(key: key);
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
 }
 
+
 class _PaymentPageState extends State<PaymentPage> {
   final OrderController orderController = Get.find<OrderController>();
+
+  late Razorpay _razorpay;   // ✅ YAHAN ADD
   bool showDetails = false;
-  int expandedIndex = -1;
+  // ================= INIT =================
+  @override
+  void initState() {
+    super.initState();
+
+    _razorpay = Razorpay();
+
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, handlePaymentError);
+  }
+
+  // ================= PAYMENTSUCCESS / ERROR =================
+  void handlePaymentSuccess(PaymentSuccessResponse response) async {
+    _processOnlineOrder(response.paymentId ?? "");
+  }
+
+  void handlePaymentError(PaymentFailureResponse response) {
+    Get.snackbar("Payment Failed", response.message ?? "Error",
+        backgroundColor: Colors.red, colorText: Colors.white);
+  }
+
+  // ================= ORDER PROCESSING =================
+
+  Future<void> _processOnlineOrder(String paymentId) async {
+    final profileController = Get.find<ProfileController>();
+    final addressController = Get.find<AddressController>();
+
+    final order = orderController.orderData.value;
+    final address = addressController.selectedAddress.value;
+    final userId = profileController.userId;
+
+    if (userId == null || order == null || address == null) {
+      Get.snackbar("Error", "Missing order or user data",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    final body = {
+      "UserId": userId,
+      "AddressId": address.addressId, // ✅ Use addressId from model
+      "PaymentMethod": "ONLINE",
+      "PaymentId": paymentId,
+      "Items": order.items.map((e) => {
+        "ProductId": e.productId,
+        "Quantity": e.quantity,
+        "Price": e.price,
+      }).toList()
+    };
+
+    final result = await orderController.placeOrder(body);
+    if (result != null) {
+      showOrderSuccess();
+    }
+  }
+
+  void placeOrderCOD() async {
+    final profileController = Get.find<ProfileController>();
+    final addressController = Get.find<AddressController>();
+
+    final order = orderController.orderData.value;
+    final address = addressController.selectedAddress.value;
+    final userId = profileController.userId;
+
+    if (userId == null || order == null || address == null) {
+      Get.snackbar("Error", "Missing order or user data",
+          backgroundColor: Colors.red, colorText: Colors.white);
+      return;
+    }
+
+    final body = {
+      "UserId": userId,
+      "AddressId": address.addressId, // ✅ Use addressId from model
+      "PaymentMethod": "COD",
+      "Items": order.items.map((e) => {
+        "ProductId": e.productId,
+        "Quantity": e.quantity,
+        "Price": e.price,
+      }).toList()
+    };
+
+    final result = await orderController.placeOrder(body);
+    if (result != null) {
+      showOrderSuccess();
+    }
+  }
+
 
   void showOrderSuccess() {
     showModalBottomSheet(
@@ -143,52 +232,19 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
     );
   }
-  void placeOrderCOD() async {
-
-    final profileController = Get.find<ProfileController>();
-    final addressController = Get.find<AddressController>();
-
-    final order = orderController.orderData.value;
-    final address = addressController.selectedAddress.value;
-
-    final userId = profileController.userId;
-
-    if (userId == null) {
-      Get.snackbar("Error", "User not logged in");
-      return;
-    }
-
-    if (order == null) {
-      Get.snackbar("Error", "Order data missing");
-      return;
-    }
-
-    if (address == null) {
-      Get.snackbar("Error", "Please select address");
-      return;
-    }
-
-    print("USER ID FROM PROFILE => $userId");
-    final body = {
-     // "UserId": userId,// 🔥 CAPITAL
-      "UserId": userId,
-      // "AddressId": address.userId,
-      "AddressId": address.addressId,
-
-
-      "PaymentMethod": "COD",
-      "Items": order.items.map((e) => {
-        "ProductId": e.productId,
-        "Quantity": e.quantity,
-        "Price": e.price,
-      }).toList()
+  void openCheckout() {
+    var options = {
+      'key': 'rzp_test_SIQPaxFkbUV8mC', // 🔥 Replace with your actual live key
+      'amount': (widget.amount * 100).toInt(),
+      'name': 'DEWA Store',
+      'description': 'Order Payment',
+      'prefill': {
+        'contact': Get.find<AuthController>().mobileNo.value,
+        'email': 'test@email.com' // Optional: can be fetched from ProfileController
+      }
     };
 
-    final createdOrder = await orderController.placeOrder(body);
-
-    if (createdOrder != null) {
-      showOrderSuccess();
-    }
+    _razorpay.open(options);
   }
   @override
   Widget build(BuildContext context) {
@@ -337,9 +393,18 @@ class _PaymentPageState extends State<PaymentPage> {
             title: "UPI",
             subtitle: "Pay by any UPI app",
             icon: Icons.account_balance_wallet,
-            child: const Padding(
-              padding: EdgeInsets.all(15),
-              child: Text("Pay using any UPI app"),
+            child: Padding(
+              padding: const EdgeInsets.all(15),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryYellow,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: openCheckout,
+                child: const Text("Pay with UPI",
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ),
           ),
 
@@ -349,9 +414,18 @@ class _PaymentPageState extends State<PaymentPage> {
             title: "Credit / Debit / ATM Card",
             subtitle: "Add and secure cards as per RBI guidelines",
             icon: Icons.credit_card,
-            child: const Padding(
-              padding: EdgeInsets.all(15),
-              child: Text("Add and secure cards as per RBI guidelines"),
+            child: Padding(
+              padding: const EdgeInsets.all(15),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryYellow,
+                  minimumSize: const Size(double.infinity, 50),
+                ),
+                onPressed: openCheckout,
+                child: const Text("Pay with Card",
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ),
           ),
 
@@ -363,7 +437,7 @@ class _PaymentPageState extends State<PaymentPage> {
             icon: Icons.calendar_month,
             child: const Padding(
               padding: EdgeInsets.all(15),
-              child: Text("Easy EMI options available"),
+              child: Text("Easy EMI options available (Coming Soon)"),
             ),
           ),
 

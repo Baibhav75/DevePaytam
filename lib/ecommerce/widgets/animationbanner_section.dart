@@ -17,13 +17,11 @@ class _BannerSectionState extends State<BannerSection> {
   void initState() {
     super.initState();
 
-    /// 🔄 AUTO SLIDE EVERY 3 SECONDS
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
       if (_controller.hasClients) {
         int nextPage = _currentIndex + 1;
-        if (nextPage > 2) {
-          nextPage = 0;
-        }
+        if (nextPage > 2) nextPage = 0;
+
         _controller.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 500),
@@ -46,7 +44,6 @@ class _BannerSectionState extends State<BannerSection> {
       height: 280,
       child: Stack(
         children: [
-
           /// 🔹 PAGEVIEW
           PageView(
             controller: _controller,
@@ -65,7 +62,7 @@ class _BannerSectionState extends State<BannerSection> {
                   Theme.of(context).primaryColor,
                   Theme.of(context).primaryColor.withOpacity(0.75),
                 ],
-                icon: Icons.shopping_bag,
+                gifPath: "assets/gif/googleLogo.gif",
               ),
               _buildBanner(
                 context,
@@ -73,7 +70,7 @@ class _BannerSectionState extends State<BannerSection> {
                 subtitle: "Trendy Fashion\nStarts @ ₹499",
                 buttonText: "Explore",
                 colors: const [Color(0xFFff9966), Color(0xFFff5e62)],
-                icon: Icons.checkroom,
+                gifPath: "assets/gif/googleLogo.gif",
               ),
               _buildBanner(
                 context,
@@ -81,7 +78,7 @@ class _BannerSectionState extends State<BannerSection> {
                 subtitle: "Flat ₹100 Cashback",
                 buttonText: "Claim",
                 colors: const [Color(0xFF11998e), Color(0xFF38ef7d)],
-                icon: Icons.account_balance_wallet,
+                gifPath:  "assets/gif/googleLogo.gif",
               ),
             ],
           ),
@@ -120,7 +117,7 @@ class _BannerSectionState extends State<BannerSection> {
         required String subtitle,
         required String buttonText,
         required List<Color> colors,
-        required IconData icon,
+        required String gifPath,
       }) {
     return ClipRRect(
       borderRadius: const BorderRadius.only(
@@ -182,11 +179,14 @@ class _BannerSectionState extends State<BannerSection> {
               ),
             ),
 
-            /// ICON
-            Icon(
-              icon,
-              size: 70,
-              color: Colors.white.withOpacity(0.9),
+            /// 🔥 GIF IMAGE
+            Image.asset(
+              gifPath,
+              height: 250,
+              width: 220,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) =>
+              const Icon(Icons.image_not_supported, color: Colors.white),
             ),
           ],
         ),

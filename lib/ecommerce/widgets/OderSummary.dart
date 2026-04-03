@@ -2,11 +2,13 @@ import 'package:Dewa/ecommerce/widgets/payments_page.dart';
 import 'package:Dewa/screens/payment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../controller/Auth_Controller.dart';
 import '../../controller/add_address_controller.dart';
 import '../../controller/category_product_controller.dart';
 import '../../controller/order_controller.dart';
 import '../../models/category_product_model.dart';
 import '../../screens/save_addesses_screen.dart';
+import '../screens/locationpage.dart';
 
 class OrderSummary extends StatelessWidget {
   final CategoryProduct? buyNowProduct;
@@ -20,8 +22,6 @@ class OrderSummary extends StatelessWidget {
       ? Get.find<AddressController>()
       : Get.put(AddressController());
   OrderSummary({super.key, this.buyNowProduct});
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -113,28 +113,8 @@ class OrderSummary extends StatelessWidget {
 
 
     return Obx(() {
-
       final address = addressController.selectedAddress.value;
-
-      if (address == null) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          color: Colors.white,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text("No Address Selected"),
-              TextButton(
-                onPressed: () {
-                  Get.to(() => SaveAddressesScreen(
-                      mobile: ""));
-                },
-                child: const Text("Add Address"),
-              )
-            ],
-          ),
-        );
-      }
+      final pinAddress = addressController.currentPinAddress.value;
 
       return Container(
         padding: const EdgeInsets.all(16),
@@ -142,47 +122,140 @@ class OrderSummary extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             // 🔹 TOP ROW (Title + Change)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
                   "Deliver to:",
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold),
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 InkWell(
                   onTap: () {
                     Get.to(() => SaveAddressesScreen(
-                        mobile: address.mobileNo));
+                      mobile: Get.find<AuthController>().mobileNo.value,
+                    ));
                   },
                   child: const Text(
-                    "Change",
+                    "Change Address",
                     style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.w600),
+                        color: Colors.blue, fontWeight: FontWeight.w600),
                   ),
                 )
               ],
             ),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 10),
 
-            Text(
-              "${address.name} - ${address.pinCode}",
-              style: const TextStyle(
-                  fontWeight: FontWeight.w600),
+            // 📍 REFINE LOCATION SECTION
+            InkWell(
+              onTap: () async {
+                final result = await Get.to(() => const SelectDeliveryLocationScreen());
+                if (result != null && result is Map) {
+                  addressController.currentPinAddress.value = result['address'] ?? "";
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.my_location, color: Colors.blue, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Refined Location (GPS)",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            pinAddress.isEmpty ? "Tap to refine on map" : pinAddress,
+                            style: const TextStyle(fontSize: 13),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
+                  ],
+                ),
+              ),
             ),
 
-            const SizedBox(height: 4),
-
-            Text(
-              "${address.address}, ${address.city}, ${address.state}",
-              style: const TextStyle(
-                  color: Colors.black54,
-                  fontSize: 13),
-            ),
+            if (address != null) ...[
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    address.addressType.toLowerCase() == 'home' 
+                        ? Icons.home_work_outlined 
+                        : Icons.business_outlined,
+                    color: Colors.grey.shade600,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              address.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                address.addressType.toUpperCase(),
+                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          "${address.address}, ${address.city}, ${address.state} - ${address.pinCode}",
+                          style: const TextStyle(color: Colors.black87, fontSize: 13, height: 1.4),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          address.mobileNo,
+                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ] else ...[
+              const SizedBox(height: 12),
+              const Center(
+                child: Text(
+                  "No saved address selected",
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -194,7 +267,6 @@ class OrderSummary extends StatelessWidget {
 
   Widget _buildItemsSection() {
     return Obx(() {
-
       final order = orderController.orderData.value;
 
       if (order == null) {
@@ -203,10 +275,57 @@ class OrderSummary extends StatelessWidget {
 
       return Column(
         children: order.items.map((item) {
-          return ListTile(
-            title: Text(item.productName),
-            subtitle: Text("Qty: ${item.quantity}"),
-            trailing: Text("₹${item.subtotal}"),
+          return Container(
+            color: Colors.white,
+            margin: const EdgeInsets.only(bottom: 2),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                // ✅ IMAGE
+                Image.network(
+                  item.imageUrl,
+                  height: 80,
+                  width: 70,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 80,
+                    width: 70,
+                    color: Colors.grey.shade200,
+                    child: const Icon(Icons.image_not_supported),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                // ✅ DETAILS
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.productName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        "₹${item.price}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text("Qty: ${item.quantity}"),
+                    ],
+                  ),
+                ),
+
+                // ✅ TOTAL
+                Text(
+                  "₹${item.subtotal}",
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           );
         }).toList(),
       );
@@ -364,7 +483,7 @@ class OrderSummary extends StatelessWidget {
                 //   colorText: Colors.white,
                 // );
                 Get.to(
-                  PaymentPage(finalAmount: order.finalAmount),
+                  PaymentPage(amount: order.finalAmount),
                 );
               },
               child: const Text(

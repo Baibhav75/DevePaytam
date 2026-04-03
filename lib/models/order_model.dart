@@ -4,6 +4,7 @@ class OrderItemModel {
   final double price;
   final int quantity;
   final double subtotal;
+  final String imageUrl;
 
   OrderItemModel({
     required this.productId,
@@ -11,6 +12,8 @@ class OrderItemModel {
     required this.price,
     required this.quantity,
     required this.subtotal,
+    required this.imageUrl,
+
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -19,7 +22,9 @@ class OrderItemModel {
       productName: json["product_name"] ?? "",
       price: (json["price"] ?? 0).toDouble(),
       quantity: json["quantity"] ?? 0,
+
       subtotal: (json["subtotal"] ?? 0).toDouble(),
+      imageUrl: json["image_url"] ?? "", // ✅ ADD THIS
     );
   }
 }

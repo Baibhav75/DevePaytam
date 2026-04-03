@@ -1,183 +1,162 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
-class LocationPage extends StatefulWidget {
-  const LocationPage({super.key});
+class SelectDeliveryLocationScreen extends StatefulWidget {
+  const SelectDeliveryLocationScreen({super.key});
 
   @override
-  State<LocationPage> createState() => _LocationPageState();
+  State<SelectDeliveryLocationScreen> createState() =>
+      _SelectDeliveryLocationScreenState();
 }
 
-class _LocationPageState extends State<LocationPage> {
-  String _currentAddress = 'Fetching location...';
-  bool _loading = true;
+class _SelectDeliveryLocationScreenState
+    extends State<SelectDeliveryLocationScreen> {
+  GoogleMapController? mapController;
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchCurrentLocation();
+  LatLng? selectedLatLng;
+  String address = "Fetching address...";
+  Placemark? currentPlace;
+
+  // ================= GET CURRENT LOCATION =================
+  Future<void> getCurrentLocation() async {
+    LocationPermission permission = await Geolocator.requestPermission();
+
+    final position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    selectedLatLng = LatLng(position.latitude, position.longitude);
+
+    mapController?.animateCamera(
+      CameraUpdate.newLatLng(selectedLatLng!),
+    );
+
+    getAddressFromLatLng(selectedLatLng!);
   }
 
-  // 🔐 Permission + Location handler
-  Future<void> _fetchCurrentLocation() async {
+  // ================= GET ADDRESS =================
+  Future<void> getAddressFromLatLng(LatLng latLng) async {
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        setState(() {
-          _currentAddress = 'Location service disabled';
-          _loading = false;
-        });
-        return;
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          setState(() {
-            _currentAddress = 'Permission denied';
-            _loading = false;
-          });
-          return;
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _currentAddress = 'Enable permission from settings';
-          _loading = false;
-        });
-        return;
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-
-      final placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
+      List<Placemark> placemarks =
+      await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
 
       final place = placemarks.first;
 
       setState(() {
-        _currentAddress =
-        '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}';
-        _loading = false;
+        currentPlace = place;
+        address =
+        "${place.name}, ${place.locality}, ${place.administrativeArea}, ${place.postalCode}";
       });
     } catch (e) {
       setState(() {
-        _currentAddress = 'Unable to fetch location';
-        _loading = false;
+        address = "Unable to fetch address";
       });
     }
   }
 
-  // 🧾 Dialog launcher
-  Future<void> _openLocationDialog(String title) async {
-    final result = await showDialog<String>(
-      context: context,
-      builder: (_) => LocationInputDialog(title: title),
-    );
-
-    if (result != null && result.trim().isNotEmpty) {
-      Navigator.pop(context, result);
-    }
+  // ================= INIT =================
+  @override
+  void initState() {
+    super.initState();
+    getCurrentLocation();
   }
 
+  // ================= UI =================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select Location'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            /// 🔄 Use current location
-            ListTile(
-              leading: const Icon(Icons.my_location, color: Colors.blue),
-              title: const Text('Use current location'),
-              subtitle: Text(_loading ? 'Please wait...' : _currentAddress),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: _loading
-                  ? null
-                  : () {
-                Navigator.pop(context, _currentAddress);
-              },
+      appBar: AppBar(title: const Text("Select Delivery Location")),
+
+      body: Stack(
+        children: [
+          // 🗺️ MAP
+          GoogleMap(
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(28.6139, 77.2090),
+              zoom: 14,
             ),
+            onMapCreated: (controller) {
+              mapController = controller;
+            },
 
-            const Divider(),
+            // 👉 User tap
+            onTap: (latLng) {
+              setState(() {
+                selectedLatLng = latLng;
+              });
+              getAddressFromLatLng(latLng);
+            },
 
-            /// ✏️ Edit location
-            ListTile(
-              leading:
-              const Icon(Icons.edit_location_alt, color: Colors.orange),
-              title: const Text('Edit location'),
-              subtitle: const Text('Change house, area or landmark'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _openLocationDialog('Edit Location'),
+            // 👉 Marker
+            markers: selectedLatLng == null
+                ? {}
+                : {
+              Marker(
+                markerId: const MarkerId("selected"),
+                position: selectedLatLng!,
+                draggable: true,
+
+                // 👉 Drag support
+                onDragEnd: (newLatLng) {
+                  setState(() {
+                    selectedLatLng = newLatLng;
+                  });
+                  getAddressFromLatLng(newLatLng);
+                },
+              ),
+            },
+          ),
+
+          // 📍 ADDRESS CARD
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Selected Address",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(address),
+
+                  const SizedBox(height: 12),
+
+                  // ✅ CONFIRM BUTTON
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Get.back(result: {
+                          "address": address,
+                          "city": currentPlace?.locality ?? "",
+                          "state": currentPlace?.administrativeArea ?? "",
+                          "pinCode": currentPlace?.postalCode ?? "",
+                          "lat": selectedLatLng?.latitude,
+                          "lng": selectedLatLng?.longitude,
+                        });
+                      },
+                      child: const Text("Confirm Location"),
+                    ),
+                  )
+                ],
+              ),
             ),
-
-            const Divider(),
-
-            /// ➕ Add new location
-            ListTile(
-              leading:
-              const Icon(Icons.add_location_alt, color: Colors.green),
-              title: const Text('Add new location'),
-              subtitle: const Text('Add address manually'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _openLocationDialog('Add Location'),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-class LocationInputDialog extends StatefulWidget {
-  final String title;
-
-  const LocationInputDialog({super.key, required this.title});
-
-  @override
-  State<LocationInputDialog> createState() => _LocationInputDialogState();
-}
-
-class _LocationInputDialogState extends State<LocationInputDialog> {
-  final TextEditingController _controller = TextEditingController();
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.title),
-      content: TextField(
-        controller: _controller,
-        autofocus: true,
-        decoration: const InputDecoration(
-          hintText: 'Enter address',
-          border: OutlineInputBorder(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.pop(context, _controller.text.trim());
-          },
-          child: const Text('Save'),
-        ),
-      ],
     );
   }
 }

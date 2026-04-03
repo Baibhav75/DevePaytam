@@ -88,7 +88,7 @@ class _ShopHomeScreenState extends State<ShopHomeScreen> {
   Future<void> _handleLocationTap() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const LocationPage()),
+      MaterialPageRoute(builder: (_) => const SelectDeliveryLocationScreen()),
     );
 
     if (result != null && result is String) {

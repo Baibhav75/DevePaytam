@@ -34,13 +34,13 @@ class ApiConstants {
 
   static const String bannerList = "/api/banner/list";
 
-// ✅ GET USER ADDRESS
-//   static const String getUserAddress = "/api/user/address";
+
 
 
 // ✅ ADDRESS APIs
   static const String getAddress = "/api/shipping/get-by-mobile";
-  static const String addAddress = "/api/shipping/add-address";
+  static const String addAddress = "/API/address/add";
+  //https://dewa.co.in//API/address/add
 
   static const String createOrder = "/api/orders/create";
   static const String getOrderByNumber =

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/add_address_controller.dart';
+import '../ecommerce/screens/locationpage.dart';
 import 'addAddress_screen.dart';
 
 class SaveAddressesScreen extends StatefulWidget {
@@ -52,13 +53,42 @@ class _SaveAddressesScreenState extends State<SaveAddressesScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+
+                  // ✅ OPTION 1: CURRENT LOCATION (MAP)
+                  InkWell(
+                    onTap: () async {
+                      // 👉 यहाँ map screen open करो
+                      final result = await Get.to(() => SelectDeliveryLocationScreen());
+
+                      if (result != null) {
+                        controller.fetchAddress(mobile: widget.mobile);
+                      }
+                    },
+                    child: Row(
+                      children: const [
+                        Icon(Icons.my_location, color: Colors.green, size: 22),
+                        SizedBox(width: 6),
+                        Text(
+                          "Use Current Location",
+                          style: TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // ✅ OPTION 2: ADD NEW ADDRESS
                   InkWell(
                     onTap: () async {
                       await Get.to(
-                        () => AddAddressScreen(mobile: widget.mobile),
+                            () => AddAddressScreen(mobile: widget.mobile),
                       );
+
                       controller.fetchAddress(mobile: widget.mobile);
                     },
                     child: Row(
@@ -79,7 +109,6 @@ class _SaveAddressesScreenState extends State<SaveAddressesScreen> {
                 ],
               ),
             ),
-
             /// EMPTY STATE
             if (controller.addressList.isEmpty)
               const Expanded(
@@ -96,111 +125,106 @@ class _SaveAddressesScreenState extends State<SaveAddressesScreen> {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: controller.addressList.length,
-                  separatorBuilder: (_, __) =>
-                      const Divider(height: 30, thickness: 0.5),
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final address = controller.addressList[index];
+                    final isSelected = controller.selectedAddress.value?.address == address.address;
 
-                    return  GestureDetector(
-                    onTap: () {
-                      controller.selectedAddress.value = address;  // 👈 SELECT
-                      Get.back(); // 👈 WAPAS ORDER SUMMARY
-                    },
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(
-                          Icons.home_outlined,
-                          size: 26,
-                          color: Colors.black54,
-                        ),
-
-                        const SizedBox(width: 14),
-
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              /// NAME
-                              Text(
-                                address.name,
-                                style: const TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-
-                              const SizedBox(height: 6),
-
-                              /// ADDRESS
-                              Text(
-                                "${address.address}, "
-                                "${address.city}, "
-                                "${address.state}, "
-                                "${address.pinCode}",
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                  height: 1.4,
-                                ),
-                              ),
-
-                              const SizedBox(height: 6),
-
-                              /// MOBILE
-                              Text(
-                                address.mobileNo,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
+                    return GestureDetector(
+                      onTap: () {
+                        controller.selectedAddress.value = address;
+                        Get.back();
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isSelected ? const Color(0xFFF2F8FD) : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFF2874F0) : Colors.grey.shade300,
+                            width: isSelected ? 1.5 : 1.0,
                           ),
                         ),
-
-                        /// THREE DOT MENU
-                        PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert),
-                          onSelected: (value) {
-                            if (value == "edit") {
-                              // edit logic
-                            } else if (value == "delete") {
-                              // delete logic
-                            }
-                          },
-                          itemBuilder: (context) => const [
-                            PopupMenuItem(
-                              value: "edit",
-                              child: Row(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Radio<String>(
+                              value: address.address,
+                              groupValue: controller.selectedAddress.value?.address,
+                              activeColor: const Color(0xFF2874F0),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              onChanged: (val) {
+                                controller.selectedAddress.value = address;
+                                Get.back();
+                              },
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Icon(Icons.edit, size: 20),
-                                  SizedBox(width: 8),
-                                  Text("Edit"),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        address.name,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          address.addressType.toUpperCase(),
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "${address.address}, ${address.city}, ${address.state} - ${address.pinCode}",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey.shade700,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    address.mobileNo,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            PopupMenuItem(
-                              value: "delete",
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.delete,
-                                    size: 20,
-                                    color: Colors.red,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    "Delete",
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ],
-                              ),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, color: Colors.black87),
+                              onSelected: (value) {
+                                // Add your logic
+                              },
+                              itemBuilder: (context) => const [
+                                PopupMenuItem(value: "edit", child: Text("Edit")),
+                                PopupMenuItem(value: "delete", child: Text("Delete", style: TextStyle(color: Colors.red))),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ));
+                      ),
+                    );
                   },
                 ),
               ),
